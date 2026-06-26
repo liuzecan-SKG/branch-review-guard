@@ -17,10 +17,10 @@ description: 把 branch-review-guard 套件（含依赖 api-change-guard、endpo
 ## 1. 获取源
 
 ```bash
-git clone --depth 1 <repo-url> <tmp>     # 或下载 raw 文件
+git clone --depth 1 https://github.com/liuzecan-SKG/branch-review-guard <tmp>   # 公开仓，匿名可拉；或下载 raw 文件
 ```
 
-读 `<tmp>/manifest.json`。若 clone 不可用，逐文件读取 raw。
+读 `<tmp>/manifest.json`。若 clone 不可用，从 `https://raw.githubusercontent.com/liuzecan-SKG/branch-review-guard/main/<path>` 逐文件读取 raw。
 
 ## 2. 选规则包（决定 SKG 包是否启用）
 

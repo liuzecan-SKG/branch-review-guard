@@ -6,13 +6,13 @@
 
 把这句丢给任意能读文件 + 跑 Git 的 Agent（Cursor / Claude Code / Codex CLI / Cline 等）：
 
-> clone 本仓库到临时目录，读取其中 `install/SKILL.md` 并按流程把 branch-review-guard 套件安装到当前项目；检测是否已存在 api-change-guard、endpoint-perf-review，按版本覆盖并先备份；若本项目是 Spring/Dubbo/MyBatis/Mongo 同栈，启用 `skg-spring` 规则包，否则只启用 `baseline`；最后给安装报告。
+> 读取 `https://raw.githubusercontent.com/liuzecan-SKG/branch-review-guard/main/install/SKILL.md` 并按其流程把 branch-review-guard 套件安装到当前项目（按其指引 `git clone https://github.com/liuzecan-SKG/branch-review-guard` 取完整文件树）；检测是否已存在 api-change-guard、endpoint-perf-review，按版本覆盖并先备份；若本项目是 Spring/Dubbo/MyBatis/Mongo 同栈，启用 `skg-spring` 规则包，否则只启用 `baseline`；最后给安装报告。
 
 Agent 会：拉取源 → 读 `manifest.json` → 逐 skill 检测已装版本 → 按版本覆盖（先备份）→ 拷到 `tools/<name>/`（canonical，通用）→ 安装 `rules/` 并写 `config.yaml` → 接 `.gitignore` → 校验 → 报告。
 
 > **可选（按 Agent）**：Cursor 额外装 `.cursor/skills/` 镜像 + `.cursor/rules/*.mdc`（自动提醒）；Claude Code 额外装 `.claude/skills/` 镜像。非 Cursor/Claude 的 Agent 只用 `tools/<name>/SKILL.md` 即可，`.mdc` 与镜像可跳过。
 
-> 私有仓：安装者需对本仓有访问权限（用自己的 Git 凭据 clone）。
+> 本仓公开：匿名即可 `git clone` / 读取 raw，无需任何凭据。
 
 可选参数（在指令里说明）：`--rules baseline,skg-spring`、`--force`（同版本/降级也覆盖）、`--skip-existing`、`--no-backup`。
 

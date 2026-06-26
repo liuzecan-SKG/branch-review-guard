@@ -6,11 +6,10 @@
 
 ## 安装（任意 Agent 通用）
 
-任意能读文件 + 跑 Git 的 Agent（Cursor / Claude Code / Codex CLI / Cline 等）都能用，无需任何 IDE 自带 `/review` 命令。把下面这句丢给 Agent：
+任意能读文件 + 跑 Git 的 Agent（Cursor / Claude Code / Codex CLI / Cline 等）都能用，无需任何 IDE 自带 `/review` 命令。本仓公开，匿名即可拉取。把下面这句丢给 Agent：
 
-> clone 本仓库到临时目录，读取其中 `install/SKILL.md` 并按流程把 branch-review-guard 套件安装到当前项目；检测已存在的 api-change-guard、endpoint-perf-review 按版本覆盖并先备份；若本项目是 Spring/Dubbo/MyBatis/Mongo 同栈，启用 `skg-spring` 规则包，否则只启用 `baseline`；最后给安装报告。
+> 读取 `https://raw.githubusercontent.com/liuzecan-SKG/branch-review-guard/main/install/SKILL.md` 并按其流程把 branch-review-guard 套件安装到当前项目；按其指引 `git clone https://github.com/liuzecan-SKG/branch-review-guard` 获取完整文件树；检测已存在的 api-change-guard、endpoint-perf-review 按版本覆盖并先备份；若本项目是 Spring/Dubbo/MyBatis/Mongo 同栈，启用 `skg-spring` 规则包，否则只启用 `baseline`；最后给安装报告。
 
-- **私有仓**：安装者需对本仓有访问权限（用自己的 Git 凭据 clone；匿名 raw 链接拉不到）。
 - **只想用、不想装**：让 Agent 直接读 `skills/branch-review-guard/SKILL.md`（它会复用 `skills/api-change-guard`、`skills/endpoint-perf-review`、`rules/`）。
 - **跨 Agent 说明**见 [AGENTS.md](AGENTS.md)；安装细节见 [INSTALL.md](INSTALL.md)。Cursor 的 `.mdc` 与 `.cursor`/`.claude` 镜像是**可选增强**，不装也能用。
 
