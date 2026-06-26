@@ -1,0 +1,32 @@
+# AGENTS.md — branch-review-guard 套件
+
+本仓库是一个**可移植、栈无关**的 Agent Skill 套件：提测/上线前对整条功能分支做多维度综合代码评审。核心是纯 markdown + Git 命令，**不绑定任何特定 IDE/Agent**，任何能读文件并执行 Git 的 Agent 都能用。
+
+## 任意 Agent：怎么用
+
+- **直接使用某个 skill**：读取 `skills/<name>/SKILL.md` 并按其流程执行。入口是 `skills/branch-review-guard/SKILL.md`（它会复用 `skills/api-change-guard`、`skills/endpoint-perf-review` 与 `rules/`）。
+- **安装到某个项目**：读取 `install/SKILL.md` 并按其流程执行（以 `manifest.json` 为准：检测已装版本 → 按版本覆盖+备份 → 落地）。
+
+不需要任何 IDE 自带的 `/review` 类命令；不需要 Python/Node。
+
+## 套件内容
+
+- `skills/branch-review-guard/` — 主 skill（编排器）：整分支累计评审、大 diff 强制全覆盖、L1/L2/L3 护栏、可发布性裁决报告。
+- `skills/api-change-guard/` — 依赖：API/兼容/影响/回归分析。
+- `skills/endpoint-perf-review/` — 依赖：单接口性能调用链复盘。
+- `rules/` — 可插拔规则包：`baseline/`（默认开，栈无关）+ `skg-spring/`（默认关，Spring/Dubbo/MyBatis/Mongo 栈）；schema 见 `rules/README.md`。
+
+## 各 Agent 的安装位置（差异在“装哪”，不在 skill 本身）
+
+| Agent | 读取位置 | 备注 |
+|---|---|---|
+| 任意 / 通用 | `tools/<name>/SKILL.md`（或直接 `skills/<name>/SKILL.md`） | canonical 正本，最通用 |
+| Cursor | `.cursor/skills/<name>/SKILL.md` + `.cursor/rules/*.mdc` | `.mdc` 是**可选**的自动提醒（来自 `cursor-rules/`） |
+| Claude Code | `.claude/skills/<name>/SKILL.md` | SKILL.md 镜像 |
+
+- `cursor-rules/*.mdc` 是 **Cursor 专属的可选增强**（auto-attach 提醒），在其它 Agent 上被忽略、不影响功能；不装也能用。
+- installer 默认会把 canonical + 各镜像 + `.mdc` 都装上；只想要通用形态时，装 `tools/<name>/`（或让 Agent 直接读 `skills/<name>/SKILL.md`）即可。
+
+## 给自己的技术栈扩展
+
+复制 `rules/skg-spring/` 为 `rules/<your-stack>/`，按 `rules/README.md` 的 schema 写规则，在 `rules/config.yaml` 启用。核心 skill 无需改动。

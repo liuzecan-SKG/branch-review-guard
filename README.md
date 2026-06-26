@@ -4,13 +4,15 @@
 
 与 PR 阶段的轻量评审（Bugbot / CodeRabbit / Greptile 等）**互补**：那些擅长单 PR 增量、低延迟；本套件专攻"整分支一次性、强制全覆盖、诚实标注运行时边界、给可发布性裁决"。
 
-## 一句话安装
+## 安装（任意 Agent 通用）
 
-把下面这句丢给你的 Agent（Cursor / Claude Code / Codex CLI 等）：
+任意能读文件 + 跑 Git 的 Agent（Cursor / Claude Code / Codex CLI / Cline 等）都能用，无需任何 IDE 自带 `/review` 命令。把下面这句丢给 Agent：
 
-> 读取 `<repo-raw-url>/install/SKILL.md` 并按其流程，把 branch-review-guard 套件安装到当前项目；安装前检测是否已存在 api-change-guard、endpoint-perf-review，按版本覆盖并先备份；若本项目是 Spring/Dubbo/MyBatis/Mongo 同栈，启用 `skg-spring` 规则包，否则只启用 `baseline`；最后给安装报告。
+> clone 本仓库到临时目录，读取其中 `install/SKILL.md` 并按流程把 branch-review-guard 套件安装到当前项目；检测已存在的 api-change-guard、endpoint-perf-review 按版本覆盖并先备份；若本项目是 Spring/Dubbo/MyBatis/Mongo 同栈，启用 `skg-spring` 规则包，否则只启用 `baseline`；最后给安装报告。
 
-详见 [INSTALL.md](INSTALL.md)。
+- **私有仓**：安装者需对本仓有访问权限（用自己的 Git 凭据 clone；匿名 raw 链接拉不到）。
+- **只想用、不想装**：让 Agent 直接读 `skills/branch-review-guard/SKILL.md`（它会复用 `skills/api-change-guard`、`skills/endpoint-perf-review`、`rules/`）。
+- **跨 Agent 说明**见 [AGENTS.md](AGENTS.md)；安装细节见 [INSTALL.md](INSTALL.md)。Cursor 的 `.mdc` 与 `.cursor`/`.claude` 镜像是**可选增强**，不装也能用。
 
 ## 它包含什么
 
@@ -32,13 +34,14 @@
 
 ```text
 branch-review-guard/
+  AGENTS.md                  # 跨 Agent 通用入口/发现（任意 agent 读 skills/<name>/SKILL.md）
   README.md  INSTALL.md  LICENSE  manifest.json
   install/SKILL.md            # 安装器（agent 读它执行安装）
-  skills/                     # 三个 skill 的 canonical 源
+  skills/                     # 三个 skill 的 canonical 源（最通用，任意 agent 直接读）
     branch-review-guard/  api-change-guard/  endpoint-perf-review/
   rules/                     # 可插拔规则包
     README.md  config.yaml  baseline/  skg-spring/
-  cursor-rules/              # Cursor .mdc 自动提醒规则源
+  cursor-rules/              # 【可选】Cursor 专属 .mdc 自动提醒（非 Cursor agent 可忽略）
     branch-review-guard.mdc  endpoint-perf-review.mdc
 ```
 
@@ -51,7 +54,7 @@ branch-review-guard/
 /branch-review-guard diff                   # 仅未提交变更
 ```
 
-slash 未识别时直接说："读取 .cursor/skills/branch-review-guard/SKILL.md 并按其流程对当前分支相对 master 做提测前综合评审。"
+slash 未识别（或非 Cursor agent）时直接说："读取 branch-review-guard 的 SKILL.md（`skills/branch-review-guard/SKILL.md` 或安装后的 `tools/branch-review-guard/SKILL.md`）并按其流程对当前分支相对 master 做提测前综合评审。"
 
 ## 为自己的技术栈加规则包
 
