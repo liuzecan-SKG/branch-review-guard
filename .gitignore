@@ -1,0 +1,7 @@
+# 生成的评审报告不入库，仅保留目录占位
+skills/*/reports/*
+!skills/*/reports/.gitkeep
+
+# 安装器覆盖时产生的备份
+*.bak-*/
+*.bak-*

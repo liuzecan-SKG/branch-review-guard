@@ -1,0 +1,56 @@
+{
+  "suite": "branch-review-guard",
+  "version": "0.2.0",
+  "description": "提测/上线前整分支综合代码评审编排器，含可插拔规则机制；自包含、可移植、可 CI 化。",
+  "schema": 1,
+  "defaults": {
+    "rules_enabled": ["baseline"],
+    "overwrite": "version-aware",
+    "backup": true
+  },
+  "rules": {
+    "dir": "rules",
+    "config": "rules/config.yaml",
+    "packs": [
+      { "name": "baseline", "default_enabled": true, "stack": "agnostic" },
+      { "name": "skg-spring", "default_enabled": false, "stack": "spring-boot,dubbo,mybatis,mongodb,satoken,rocketmq" }
+    ]
+  },
+  "skills": [
+    {
+      "name": "branch-review-guard",
+      "version": "0.2.0",
+      "role": "primary",
+      "source": "skills/branch-review-guard",
+      "targets": {
+        "canonical": "tools/branch-review-guard",
+        "mirrors": [".cursor/skills/branch-review-guard", ".claude/skills/branch-review-guard"]
+      },
+      "rule": { "source": "cursor-rules/branch-review-guard.mdc", "target": ".cursor/rules/branch-review-guard.mdc" },
+      "requires": ["api-change-guard", "endpoint-perf-review"],
+      "reports_gitignore": "tools/branch-review-guard/reports/*"
+    },
+    {
+      "name": "api-change-guard",
+      "version": "0.2.0",
+      "role": "dependency",
+      "source": "skills/api-change-guard",
+      "targets": {
+        "canonical": "tools/api-change-guard",
+        "mirrors": [".cursor/skills/api-change-guard", ".claude/skills/api-change-guard"]
+      },
+      "reports_gitignore": "tools/api-change-guard/reports/*"
+    },
+    {
+      "name": "endpoint-perf-review",
+      "version": "0.2.0",
+      "role": "dependency",
+      "source": "skills/endpoint-perf-review",
+      "targets": {
+        "canonical": "tools/endpoint-perf-review",
+        "mirrors": [".cursor/skills/endpoint-perf-review", ".claude/skills/endpoint-perf-review"]
+      },
+      "rule": { "source": "cursor-rules/endpoint-perf-review.mdc", "target": ".cursor/rules/endpoint-perf-review.mdc" }
+    }
+  ]
+}

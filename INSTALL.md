@@ -1,0 +1,51 @@
+# 安装指南
+
+本套件是纯 markdown 的 Agent Skill，"安装" = 把文件拷到目标项目的约定位置。两种方式：
+
+## 方式一：交给 Agent 自动安装（推荐）
+
+把这句丢给 Agent（Cursor / Claude Code / Codex CLI 等）：
+
+> 读取 `<repo-raw-url>/install/SKILL.md` 并按其流程，把 branch-review-guard 套件安装到当前项目；安装前检测是否已存在 api-change-guard、endpoint-perf-review，按版本覆盖并先备份；若本项目是 Spring/Dubbo/MyBatis/Mongo 同栈，启用 `skg-spring` 规则包，否则只启用 `baseline`；最后给安装报告。
+
+Agent 会：拉取源 → 读 `manifest.json` → 逐 skill 检测已装版本 → 按版本覆盖（先备份）→ 拷到 `tools/`、`.cursor/skills/`、`.claude/skills/`、`.cursor/rules/` → 安装 `rules/` 并写 `config.yaml` → 接 `.gitignore` → 校验 → 报告。
+
+可选参数（在指令里说明）：`--rules baseline,skg-spring`、`--force`（同版本/降级也覆盖）、`--skip-existing`、`--no-backup`。
+
+## 方式二：手动安装
+
+```bash
+git clone --depth 1 <repo-url> brg && cd brg
+# 对 manifest.json 里每个 skill：source -> targets.canonical，再把 SKILL.md 同步到 mirrors
+cp -r skills/branch-review-guard   <project>/tools/branch-review-guard
+cp -r skills/api-change-guard      <project>/tools/api-change-guard
+cp -r skills/endpoint-perf-review  <project>/tools/endpoint-perf-review
+cp -r rules                        <project>/tools/branch-review-guard/rules
+# 镜像（每个 skill 的 SKILL.md）
+mkdir -p <project>/.cursor/skills/branch-review-guard <project>/.claude/skills/branch-review-guard
+cp tools/branch-review-guard/SKILL.md <project>/.cursor/skills/branch-review-guard/SKILL.md
+cp tools/branch-review-guard/SKILL.md <project>/.claude/skills/branch-review-guard/SKILL.md
+# ……其余 skill 同理；Cursor 规则：
+cp cursor-rules/branch-review-guard.mdc  <project>/.cursor/rules/branch-review-guard.mdc
+cp cursor-rules/endpoint-perf-review.mdc <project>/.cursor/rules/endpoint-perf-review.mdc
+```
+
+然后编辑 `<project>/tools/branch-review-guard/rules/config.yaml`，按需把 `skg-spring` 设为 `enabled: true`。
+
+## 覆盖安装说明
+
+- 安装器以各 skill `SKILL.md` 的 `version:` 判断已装版本，按"升级则备份+覆盖、降级默认不覆盖（需 --force）、同版本跳过"处理。
+- 备份位置：`<target>.bak-<时间戳>/`。手动安装请自行先备份已存在的同名目录。
+
+## 前置
+
+- 目标项目是 Git 仓库。
+- Agent 能读文件、执行 Git/shell、写文件。
+- 无需 Python / Node，无需联网（除拉取源仓库）。
+
+## 验证安装
+
+```text
+/branch-review-guard
+```
+或："读取 .cursor/skills/branch-review-guard/SKILL.md 并对当前分支相对 master 做提测前综合评审。"

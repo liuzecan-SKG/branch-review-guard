@@ -1,0 +1,17 @@
+# 规则包开关。安装器按 --rules 参数写入；也可手动改。
+# 评审核心只加载 enabled: true 的包。
+packs:
+  baseline:
+    enabled: true        # 栈无关通用规则，默认开
+  skg-spring:
+    enabled: false       # SKG Health Global 技术栈包；同栈团队改为 true
+
+# 可选：按规则 id 覆盖默认严重度（不改规则文件本身）
+severity_overrides: {}
+  # 例：
+  # skg-spring/txn-multitransactional-escape: P1
+
+# 可选：全局禁用某些规则 id（即使所在包启用）
+disabled_rules: []
+  # 例：
+  # - baseline/generated-code-low-priority

@@ -1,0 +1,16 @@
+---
+description: 提测/上线前对整条功能分支（相对主分支的累计变更）做多维度综合代码评审的提醒。需要在合并前对一条分支做一次性全面 review（正确性/设计/安全/测试/性能/兼容/可观测）时，按本规则走，完整流程见 skill branch-review-guard。
+globs:
+alwaysApply: false
+---
+
+# 提测前整分支综合评审提醒
+
+当需要在合并/提测前对一条功能分支（相对主分支的累计变更）做一次性全面 code review 时，用 skill `branch-review-guard`（编排器），完整流程与报告模板见 `tools/branch-review-guard/SKILL.md`（镜像：`.cursor/skills/branch-review-guard/SKILL.md`、`.claude/skills/branch-review-guard/SKILL.md`）。
+
+核心策略：自动化先行 → 建立上下文 → 加载规则包 → 大 diff 分批全覆盖 → 按风险聚焦 → 显式声明覆盖范围。
+
+- **栈无关核心 + 可插拔规则**：通用 checklist 不绑定任何框架；技术栈/项目特有坑与降噪校准由 `rules/` 规则包注入（`baseline` 默认开 + 可选栈包），缺包则对应深度自然缺席但通用 checklist 照跑。规则 schema 与消费方式见 `rules/README.md`。
+- **复用而非重造（弹性路径解析）**：API/兼容/影响/回归走 `api-change-guard`，性能走 `endpoint-perf-review`；按 `tools/<name>/SKILL.md` → `.cursor/skills/<name>/SKILL.md` → `.claude/skills/<name>/SKILL.md` 顺序解析首个存在者，找不到则该维度降级并在报告对应章节声明"依赖未安装、未覆盖"。
+- **护栏**：L1 自动定论；L2 给"证据+优先级"并标待人工确认；L3（真实性能 p99 / 并发竞态 / 迁移在存量数据下表现）只输出"需运行时验证项"，禁止下"已验证通过"。
+- **单独场景**仍可直接用专项 skill：只看影响面用 `api-change-guard`，只优化某接口用 `endpoint-perf-review`。
