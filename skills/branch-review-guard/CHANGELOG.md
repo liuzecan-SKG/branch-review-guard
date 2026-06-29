@@ -2,6 +2,19 @@
 
 本文件记录 Branch Review Guard 的演进。
 
+## [0.2.5] - 2026-06-29
+
+### Changed
+
+- **README 瘦身为"介绍 + 教程"**：从 228 行精简到约 120 行，移除版本钉住、刷新≠激活、三路径深度对比、迁移大表等**机制/选型 rationale**；这些迭代思路统一沉到维护方设计文档 `BRANCH_REVIEW_GUARD_PLUGIN_DESIGN.md` §5.4 与本 CHANGELOG，README 内引用 CHANGELOG。安装/使用/更新/卸载/迁移均保留可直接照做的简明步骤。
+- **报告落地路径插件感知化**：原硬编码 `tools/<name>/reports/` 在插件形态下不存在；改为"优先 `tools/<name>/reports/`（安装器路径），否则项目根 `branch-review-reports/`（不存在即创建）"。涉及 `branch-review-guard`/`api-change-guard` 的 `SKILL.md`、各 `README`、示例报告。
+
+### Fixed
+
+- 三个 `skills/*/SKILL.md` 的 `version:` 由 `0.2.0` 同步到 `0.2.5`（此前与套件版本脱节，影响安装器版本感知覆盖判断）。
+- `branch-review-guard/SKILL.md` 删除插件前的旧维护语（"正本 tools/… 镜像到 .cursor/.claude，改完同步两个镜像"），改为描述插件/安装器/裸读三形态共享同一 `skills/`+`rules/` 内核。
+- `AGENTS.md` 插件行补充 VSCode 扩展走 `/plugins` UI（此前只给 CLI `/plugin` 命令）。
+
 ## [0.2.4] - 2026-06-29
 
 ### Fixed

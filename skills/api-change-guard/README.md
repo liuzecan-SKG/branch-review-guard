@@ -49,7 +49,7 @@ api-change-guard/
 
 ## 输出内容
 
-- 生成到 `tools/api-change-guard/reports/` 下的 Markdown 报告文件
+- 生成到项目内报告目录的 Markdown 报告文件（优先 `tools/api-change-guard/reports/`，否则项目根 `branch-review-reports/`）
 - 已上线功能影响范围总结
 - 回归测试范围
 - API 和业务链路变更摘要
@@ -154,7 +154,7 @@ git rev-parse --short HEAD
 - `git diff` 用三点 `...`（分叉点以来本分支引入的改动），`git log` 用两点 `..`。
 - `analyze mine` 是 commit 口径过滤，不是“本人净改动 diff”；多人改同一文件无法精确切分，影响分析与回归判断仍以 `branch` 模式为权威基准。
 
-然后 AI Agent 会读取相关的对外入口 / 请求返回契约 / RPC 客户端 / 数据访问·转换·业务逻辑文件，基于 Git diff 和文件内容分析影响范围，叠加应用 `rules/` 中已启用的 `dimension: api` 规则，在 `tools/api-change-guard/reports/` 下生成 Markdown 报告，并返回报告链接和报告正文。
+然后 AI Agent 会读取相关的对外入口 / 请求返回契约 / RPC 客户端 / 数据访问·转换·业务逻辑文件，基于 Git diff 和文件内容分析影响范围，叠加应用 `rules/` 中已启用的 `dimension: api` 规则，在项目内报告目录（优先 `tools/api-change-guard/reports/`，否则项目根 `branch-review-reports/`）生成 Markdown 报告，并返回报告链接和报告正文。
 
 报告文件名包含分析目标、当前 commit 短 SHA 和时间戳，例如：
 

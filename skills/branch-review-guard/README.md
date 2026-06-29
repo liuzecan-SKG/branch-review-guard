@@ -70,7 +70,7 @@ slash command 未识别时直接说：
 
 ## 输出
 
-- `tools/branch-review-guard/reports/` 下的 Markdown 报告，命名 `branch-review-guard-<mode>-<shortSha>-<timestamp>.md`。
+- 项目内生成的 Markdown 报告（优先 `tools/branch-review-guard/reports/`，否则项目根 `branch-review-reports/`），命名 `branch-review-guard-<mode>-<shortSha>-<timestamp>.md`。
 - 结论先行（可发布性：阻塞/有条件通过/通过 + Top 风险）、分维度发现（带 `file:line` 证据与 `P0/P1/P2/Nit` 优先级）、高风险专题、API/兼容/回归、性能与可靠性、测试评估、可观测/运维、i18n、阻塞项清单、待人工确认项、分析覆盖范围与未覆盖风险。
 
 ## 与其它工具的关系

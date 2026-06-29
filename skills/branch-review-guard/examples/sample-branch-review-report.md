@@ -1,6 +1,6 @@
 # 样例：branch-review-guard 报告（示意，非真实评审结论）
 
-> 本文件是**格式样例**，用于演示报告形态与可信度护栏。其中的功能、文件路径与 findings **均为构造示例**，不绑定任何具体框架，也不代表对任何真实分支的结论。真实运行请在 `tools/branch-review-guard/reports/` 生成。
+> 本文件是**格式样例**，用于演示报告形态与可信度护栏。其中的功能、文件路径与 findings **均为构造示例**，不绑定任何具体框架，也不代表对任何真实分支的结论。真实运行的报告生成在项目内 `branch-review-reports/`（或安装器路径的 `tools/branch-review-guard/reports/`）。
 
 报告文件：[branch-review-guard-branch-a1b2c3d4e-20260626-1500.md](../reports/branch-review-guard-branch-a1b2c3d4e-20260626-1500.md)
 

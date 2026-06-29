@@ -1,6 +1,6 @@
 ---
 name: branch-review-guard
-version: 0.2.0
+version: 0.2.5
 description: 提测/上线前对整条功能分支（相对主分支的累计变更）做多维度综合代码评审的编排器。统一调度"正确性/Bug、设计/可维护性、安全、测试、可观测/运维、i18n"等自包含 reviewer，并复用 api-change-guard（API/兼容/影响/回归）与 endpoint-perf-review（性能）作为其中两个维度，强制大 diff 分批全覆盖，按可插拔 rules/ 规则包注入技术栈特有深度，产出单份中文可发布性评审报告。当需要在合并前对一条功能分支做一次性、全面的 code review 时使用。
 ---
 
@@ -23,7 +23,7 @@ description: 提测/上线前对整条功能分支（相对主分支的累计变
 - **支持子代理的 Agent**（如 Cursor 的 explore/Task）：每批 / 每维度**并行派一个子代理**，上下文隔离、互不挤占。
 - **不支持子代理的 Agent**：顺序多轮，一批做完再做下一批；用同一套 prompt 与 checklist，结果一致，只是更慢。
 
-安装后正本是 `tools/branch-review-guard/SKILL.md`，镜像到 `.cursor/skills/branch-review-guard/SKILL.md` 与 `.claude/skills/branch-review-guard/SKILL.md`，**改正本后同步两个镜像**。
+本套件的发布载体是 Claude Code 插件（`.claude-plugin/`）；非 Claude Code 的 Agent 经安装器（`install/SKILL.md`）落地到 `tools/<name>/` 或直接读 `skills/<name>/SKILL.md`。各形态共享同一份 `skills/` + `rules/` 内核。
 
 ## 规则机制（栈无关核心 + 可插拔规则包）
 
@@ -61,7 +61,7 @@ description: 提测/上线前对整条功能分支（相对主分支的累计变
 6. **分维度评审**：对每批应用 `prompts/` 下对应维度的 reviewer prompt（见 `## 评审维度与复用映射`），每个 reviewer 同时注入已启用 `rules/` 规则。支持子代理则并行，否则顺序。
 7. **复用专项 skill（弹性路径解析）**：API/兼容/影响/回归调用 `api-change-guard`；对识别出的高风险接口调用 `endpoint-perf-review`（解析与降级规则见 `## 评审维度与复用映射`）。
 8. **汇总去重**：按 `prompts/consolidate-report.md` 合并各批/各维度发现，跨批去重、统一优先级（`P0 阻塞 / P1 必改 / P2 建议 / Nit 可选`）。
-9. **产出报告**：按 `templates/report-template.md` 在 `tools/branch-review-guard/reports/` 生成单份中文报告，命名 `branch-review-guard-<mode>-<shortSha>-<timestamp>.md`。
+9. **产出报告**：按 `templates/report-template.md` 在项目内生成单份中文报告——优先 `tools/branch-review-guard/reports/`（安装器路径已建则用之），否则在项目根的 `branch-review-reports/`（不存在即创建，建议加入 `.gitignore`）；命名 `branch-review-guard-<mode>-<shortSha>-<timestamp>.md`。
 10. **回复**：先给报告链接，再粘贴完整报告正文（见 `## 回复约定`）。
 
 ## 分析模式
