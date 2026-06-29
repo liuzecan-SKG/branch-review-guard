@@ -11,6 +11,10 @@
 - **5 个只读维度子代理**（`agents/bru-*.md`）：`bru-correctness`、`bru-design`、`bru-security`、`bru-tests`、`bru-observability`。编排器在 Claude Code 插件形态下按批并行派发，上下文隔离；不支持子代理的环境自动回退顺序多轮。各子代理以对应 `prompts/review-*.md` 为权威清单并内置回退清单 + `rules/` 加载约定。
 - `orchestrate-branch-review.md` 第 6 步补充：插件形态优先派发上述命名子代理。
 
+### Fixed
+
+- **复用依赖 skill 的插件形态感知**：原先复用 `api-change-guard` / `endpoint-perf-review` 仅按文件路径（`tools/` → `.cursor/` → `.claude/`）解析；纯插件形态下这些路径不存在会误降级为"未安装"。现增加优先分支：作为 Claude Code 插件运行时，这两个依赖随插件一同加载，**直接以 skill 形式调用**（`branch-review-guard:<name>`），不再因路径缺失误判未覆盖。改动 `SKILL.md` `## 评审维度与复用映射` 与 `orchestrate-branch-review.md` 第 7 步。
+
 ### Notes
 
 - 本次为 v0.2 线内的**叠加式**小版本：默认 `branch` 全量评审行为、规则机制、L1/L2/L3 诚实护栏均不变；`manifest.json` / `plugin.json` 同步至 `0.2.1`。

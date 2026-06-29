@@ -25,7 +25,7 @@
    - **支持子代理**：每批（或每"批×维度"）派一个子代理并行；给子代理传"该批文件清单 + 对应 prompt 路径 + 已启用规则包要点"，要求它只返回结构化发现列表。
      - 作为 **Claude Code 插件**运行时，优先派发本插件预置的命名维度子代理（各自上下文隔离、只读、已内置对应清单与规则加载约定）：正确性→`bru-correctness`、设计/质量→`bru-design`、安全→`bru-security`、测试→`bru-tests`、可观测/运维/i18n→`bru-observability`。
    - **不支持子代理**：顺序逐批逐维度执行同样的 prompt。
-7. **复用专项 skill（弹性路径解析）**：对每个依赖 skill，按 `tools/<name>/SKILL.md` → `.cursor/skills/<name>/SKILL.md` → `.claude/skills/<name>/SKILL.md` 顺序找首个存在的 `SKILL.md`：
+7. **复用专项 skill（弹性解析）**：先判形态——**作为 Claude Code 插件运行时**，`api-change-guard` / `endpoint-perf-review` 随本插件一同加载，**直接以 skill 形式调用**（命名空间 `branch-review-guard:<name>`），不走文件路径、不因路径缺失判"未安装"；**非插件形态**再按 `tools/<name>/SKILL.md` → `.cursor/skills/<name>/SKILL.md` → `.claude/skills/<name>/SKILL.md` 顺序找首个存在的 `SKILL.md`：
    - API/兼容/影响/回归 → 解析并应用 `api-change-guard` 的 `branch` 模式，产出兼容性与回归范围。未找到则第 5 章声明"`api-change-guard` 未安装、该维度未覆盖"。
    - 性能 → 从前面发现里挑出**高风险接口**（被改动触达的入口接口、重聚合服务），仅对这些解析并应用 `endpoint-perf-review`。不要全量跑。未找到则第 6 章声明"`endpoint-perf-review` 未安装、该维度未覆盖"。
 8. **汇总**：把所有批次/维度/专项 skill 的发现交给 `consolidate-report.md` 去重、定级、合并成单份报告。
