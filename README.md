@@ -4,9 +4,22 @@
 
 与 PR 阶段的轻量评审（Bugbot / CodeRabbit / Greptile 等）**互补**：那些擅长单 PR 增量、低延迟；本套件专攻"整分支一次性、强制全覆盖、诚实标注运行时边界、给可发布性裁决"。
 
-## 安装方式一：Claude Code 原生插件（一键启停 / 版本 / 部门复用，推荐）
+## 三种安装方式（先看这张表）
 
-本仓库同时是一个 **Claude Code 插件 + 单插件 marketplace**（`.claude-plugin/`）。在 Claude Code 里三步接入：
+| 方式 | 怎么装 | 拷文件进项目? | 版本感知 / 覆盖 | 一键启停 | 适合 |
+|---|---|---|---|---|---|
+| **① 插件路径** | `/plugins`(VSCode 扩展 UI) 或 `/plugin`(CLI) 加 marketplace 并安装 | **否**（插件区加载） | ✗ 无；项目里旧本地副本会**遮蔽**插件，需**手动删** | ✅ `/plugins` 开关 | Claude Code 用户，要一键启停/版本/部门复用 |
+| **② 安装器路径** | 让 Agent 读 `install/SKILL.md`（`manifest.json` 驱动） | **是**（`tools/<name>/`、`.claude`/`.cursor` 镜像、`rules/`） | ✅ **版本感知覆盖 + 自动备份** | ✗（删文件） | 任意 Agent（Cursor / Codex / Cline）、要入库随项目走 |
+| **③ 手动复制** | `git clone` 后 `cp` 到约定位置 | **是** | ✗ 自己管 | ✗ | 离线 / 完全手控 |
+
+> 关键区别：**只有①是"插件"**——不拷文件、靠插件机制加载、可一键启停/版本/复用，但旧本地副本会**遮蔽**它（需先删，见 [升级与迁移](#升级与迁移项目里已有旧-skill-副本时)）；**②/③把文件拷进项目**，其中**只有②（安装器）做版本感知覆盖+备份**，③纯手工无版本逻辑。
+
+## 安装方式①：Claude Code 原生插件（一键启停 / 版本 / 部门复用，推荐）
+
+本仓库同时是一个 **Claude Code 插件 + 单插件 marketplace**（`.claude-plugin/`）。
+
+- **VSCode 扩展**：输入 `/plugins` 打开图形界面 → Marketplaces 标签填 `liuzecan-SKG/branch-review-guard` 点 Add → Plugins 标签 Install。（扩展不支持 `/plugin marketplace add` 这类 CLI 子命令。）
+- **CLI（终端 `claude`）**：三步命令：
 
 ```text
 /plugin marketplace add liuzecan-SKG/branch-review-guard
@@ -18,18 +31,23 @@
 - **版本迭代**：`.claude-plugin/plugin.json` 的 `version`(SemVer) 控制；`/plugin update` 升级。
 - **部门复用**：同事执行上面 `marketplace add` 即可接入，取代手工拷目录。
 - **维度子代理**：插件预置 `bru-correctness` / `bru-design` / `bru-security` / `bru-tests` / `bru-observability` 五个只读子代理，编排器按批并行派发、上下文隔离（不支持子代理的环境自动回退顺序多轮）。
-- 安装在用户级；要随项目入库走 `--scope project`。
+- 安装在用户级；要随项目入库、随分支共享给同事，走 `--scope project`（写入 `.claude/settings.json`）或在 `.claude/settings.json` 用 `extraKnownMarketplaces` + `enabledPlugins` 声明。
 
-> 插件层与下面的「任意 Agent 通用」安装方式**共存互不影响**：Claude Code 用户走插件，Cursor / Codex / 其它 Agent 仍走 `manifest.json` 安装器或直接读 `skills/<name>/SKILL.md`。同一份 `skills/` + `rules/` 内核，多种封装出口。
+## 安装方式②：安装器路径（任意 Agent 通用，版本感知覆盖 + 备份）
 
-## 安装方式二：任意 Agent 通用（栈无关，Cursor / Codex / Cline 等）
-
-任意能读文件 + 跑 Git 的 Agent 都能用，无需任何 IDE 自带 `/review` 命令。本仓公开，匿名即可拉取。把下面这句丢给 Agent：
+任意能读文件 + 跑 Git 的 Agent（Cursor / Codex / Cline 等）都能用，无需任何 IDE 自带 `/review` 命令。本仓公开，匿名即可拉取。把下面这句丢给 Agent，它会**按 `manifest.json` 把文件拷进项目，已存在则版本感知覆盖并先备份**：
 
 > 读取 `https://raw.githubusercontent.com/liuzecan-SKG/branch-review-guard/main/install/SKILL.md` 并按其流程把 branch-review-guard 套件安装到当前项目；按其指引 `git clone https://github.com/liuzecan-SKG/branch-review-guard` 获取完整文件树；检测已存在的 api-change-guard、endpoint-perf-review 按版本覆盖并先备份；若本项目是 Spring/Dubbo/MyBatis/Mongo 同栈，启用 `skg-spring` 规则包，否则只启用 `baseline`；最后给安装报告。
 
-- **只想用、不想装**：让 Agent 直接读 `skills/branch-review-guard/SKILL.md`（它会复用 `skills/api-change-guard`、`skills/endpoint-perf-review`、`rules/`）。
-- **跨 Agent 说明**见 [AGENTS.md](AGENTS.md)；安装细节见 [INSTALL.md](INSTALL.md)。Cursor 的 `.mdc` 与 `.cursor`/`.claude` 镜像是**可选增强**，不装也能用。
+这条**有版本感知覆盖**：升级则备份+覆盖、降级默认不覆盖（需 `--force`）、同版本跳过；备份在 `<target>.bak-<时间戳>/`。详见 [INSTALL.md](INSTALL.md)。
+
+## 安装方式③：手动复制 / 只想用不想装
+
+- **手动复制**：`git clone` 后按 [INSTALL.md 的「方式二：手动安装」](INSTALL.md) 把 `skills/<name>`、`rules/` `cp` 到项目约定位置（无版本逻辑，自行先备份）。
+- **只想用、不想装**：让 Agent 直接读 `skills/branch-review-guard/SKILL.md`（它会复用 `skills/api-change-guard`、`skills/endpoint-perf-review`、`rules/`），不落地任何文件。
+- **跨 Agent 说明**见 [AGENTS.md](AGENTS.md)。Cursor 的 `.mdc` 与 `.cursor`/`.claude` 镜像是**可选增强**，不装也能用。
+
+> 三种方式**共存互不影响**：Claude Code 用户走方式①插件；Cursor / Codex 等走方式②安装器或③手动。同一份 `skills/` + `rules/` 内核，多种封装出口。
 
 ## 升级与迁移（项目里已有旧 skill 副本时）
 
