@@ -28,7 +28,8 @@
 ```
 
 - **一键启停**：`/plugin` 启用/禁用整套，连带 3 个 skill、5 个维度子代理、`/branch-review-guard` 命令一起上下线，无残留。
-- **版本迭代**：`.claude-plugin/plugin.json` 的 `version`(SemVer) 控制；`/plugin update` 升级。
+- **装好后建议立即开启 auto-update**（取代手动更新，详见下方 [更新与卸载](#更新与卸载)）：`/plugins` → Marketplaces → 选本插件 → Enable auto-update。此后每次启动自动对齐最新版。
+- **版本迭代**：`.claude-plugin/plugin.json` 的 `version`(SemVer) 控制；配合 auto-update 自动下发。
 - **部门复用**：同事执行上面 `marketplace add` 即可接入，取代手工拷目录。
 - **维度子代理**：插件预置 `bru-correctness` / `bru-design` / `bru-security` / `bru-tests` / `bru-observability` 五个只读子代理，编排器按批并行派发、上下文隔离（不支持子代理的环境自动回退顺序多轮）。
 - 安装在用户级；要随项目入库、随分支共享给同事，走 `--scope project`（写入 `.claude/settings.json`）或在 `.claude/settings.json` 用 `extraKnownMarketplaces` + `enabledPlugins` 声明。
@@ -79,22 +80,41 @@ tools/branch-review-guard   tools/api-change-guard   (及随其安装的 tools/b
 
 ## 更新与卸载
 
-### 更新到最新版（不需要删任何项目文件）
+更新**不碰项目文件**（删文件只是首次迁移的一次性动作，见上节）。
 
-插件从 GitHub 仓库加载，更新**不碰项目文件**（删文件只是首次迁移的一次性动作，见上节）：
+### 更新：开启 auto-update（推荐，取代手动更新）
+
+本套件**以 auto-update 作为标准更新方式**——开启后每次 Claude Code 启动会自动 `git pull` 最新版并**激活**，免去"刷新 → 激活"两步、也规避当前 UI 看不到版本号的困扰。**装好后建议立即开启，之后无需任何手动更新操作。**
+
+开启方式（任一）：
+
+- **VSCode 扩展**：`/plugins` → **Marketplaces** 选项卡 → 选 `branch-review-guard` → **Enable auto-update**，然后 `Developer: Reload Window`。
+- **`.claude/settings.json`（推荐，可随分支共享给同事）**：marketplace 条目加 `"autoUpdate": true`：
+
+```json
+{
+  "extraKnownMarketplaces": {
+    "branch-review-guard": {
+      "source": { "source": "github", "repo": "liuzecan-SKG/branch-review-guard" },
+      "autoUpdate": true
+    }
+  },
+  "enabledPlugins": { "branch-review-guard@branch-review-guard": true }
+}
+```
+
+> 开启后，维护方每次发布（bump 版本）你**下次启动即自动拿到**，无需手动刷新/激活。
+
+### 手动更新（仅在未开 auto-update 时的兜底）
 
 | 环境 | 操作 |
 |---|---|
-| **VSCode 扩展** | `/plugins` → **Marketplaces** 选项卡对 `branch-review-guard` 点**刷新** → 回 **Plugins** 选项卡对插件点 **Install**（覆盖为最新） |
-| **CLI** | `/plugin marketplace update branch-review-guard` 然后 `/plugin install branch-review-guard@branch-review-guard`（重装会检测版本变化并更新） |
+| **VSCode 扩展** | `/plugins` → **Marketplaces** 对 marketplace 点**刷新**（git pull 最新进缓存）→ 回 **Plugins** 对插件点 **Update/Install** 激活 |
+| **CLI** | `/plugin marketplace update branch-review-guard` 然后 `/plugin install branch-review-guard@branch-review-guard` |
 
-> ⚠️ **维护者必读 · 版本钉住规则**：`plugin.json` 设了 `version` 后，插件被**钉死在该版本字符串**。只 push 新 commit、不改 `version`，**已安装用户不会拿到更新**（Claude Code 看到同一 `version` 沿用缓存）。因此**每次发布必须 bump `plugin.json` 与 `manifest.json` 的 `version`**（与 `CHANGELOG.md` 同步）。
->
-> 替代方案：删掉 `version` 字段 → Claude Code 以 commit SHA 当版本，每个 commit 自动下发（适合内部活跃迭代，但失去 SemVer 语义）。本套件**保留 `version` + 每次发布 bump**。
+> ⚠️ **故障排查 ·「刷新后没更新」**：**刷新 marketplace ≠ 激活已安装插件**。刷新只把最新版 `git pull` 进缓存（`~/.claude/plugins/cache`），而激活指针（`installed_plugins.json`）需由"更新/重装"或 auto-update 切换。当前 UI 基本不显示版本号，若刷新后看不到更新按钮：**卸载后重装**，或直接开 **auto-update** 一劳永逸。
 
-### 自动更新（可选，免手动）
-
-marketplace 开 auto-update：`/plugins` UI 对 marketplace 选 **Enable auto-update**，或 `.claude/settings.json` 的 `extraKnownMarketplaces.<name>` 加 `"autoUpdate": true`。仍受版本钉住规则约束（`version` 不 bump 则无新版可取）。
+> ⚠️ **维护者必读 · 版本钉住规则**：`plugin.json` 设了 `version` 后插件被**钉死在该版本字符串**——只 push 新 commit、不改 `version`，消费方（即便开了 auto-update）也拿不到更新。因此**每次发布必须 bump `plugin.json` 与 `manifest.json` 的 `version`**（与 `CHANGELOG.md` 同步）。替代：删 `version` 用 commit SHA 当版本，每 commit 自动下发（失去 SemVer 语义）。本套件保留 `version` + 每次发布 bump。
 
 ### 禁用 / 卸载（干净，无项目残留）
 

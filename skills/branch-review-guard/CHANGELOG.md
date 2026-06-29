@@ -2,6 +2,14 @@
 
 本文件记录 Branch Review Guard 的演进。
 
+## [0.2.3] - 2026-06-29
+
+### Changed
+
+- **更新模型改为 auto-update 主导，手动更新降为兜底**：实践中发现"刷新 marketplace ≠ 激活已安装插件"（刷新只 `git pull` 进缓存，激活指针 `installed_plugins.json` 不切换），且当前 UI 不显示版本号，易出现"已取到未激活"。故确立 **auto-update 为标准更新方式**：消费方开 `autoUpdate`（UI 或 `.claude/settings.json` 的 `extraKnownMarketplaces.<name>: {"autoUpdate": true}`），启动即自动 pull+激活；手动"刷新+重装"仅兜底。
+- README「更新与卸载」重写：auto-update 升为推荐主路径并给 settings.json 片段、手动更新降级、新增「刷新后没更新」故障排查；安装方式①加"装好后建议立即开启 auto-update"。
+- 设计文档 §5.2 同步新增"更新模型：auto-update 取代手动更新"约定。
+
 ## [0.2.2] - 2026-06-29
 
 ### Changed
