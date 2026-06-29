@@ -8,7 +8,7 @@
 
 ### A. Claude Code 原生插件（推荐）
 
-本仓库即一个 **Claude Code 插件 + 单插件 marketplace**（`.claude-plugin/`），一键装全套（3 skill + 5 维度子代理 + `/branch-review-guard` 命令），支持启停/版本/部门复用。
+本仓库即一个 **Claude Code 插件 + 单插件 marketplace**（`.claude-plugin/`），一键装全套（3 skill + 5 维度子代理 + `/branch-review-guard:review` 命令），支持启停/版本/部门复用。
 
 - **VSCode 扩展**：`/plugins` → **Marketplaces** 标签填 `liuzecan-SKG/branch-review-guard` 点 **Add** → **Plugins** 标签点 **Install**。
 - **CLI（终端 `claude`）**：
@@ -45,31 +45,35 @@
 
 ## 使用
 
-安装后用 `/branch-review-guard [模式] [选项]`。**留空 = `branch` 全量模式**（提测/上线卡点，最常用）。
+命令 = **`/branch-review-guard:review [模式] [选项]`**。
+
+> Claude Code 插件命令带命名空间 `<插件名>:<命令名>`，故规范写法是 `/branch-review-guard:review`（裸 `/branch-review-guard` 不识别）。输入 `/` 看自动补全菜单即可选到它。非插件形态（Cursor/安装器）或不想记命令时，直接对 Agent 说"对当前分支做提测前综合评审"亦可。
+
+**留空 = `branch` 全量模式**（提测/上线卡点，最常用）：
 
 ```text
-/branch-review-guard                          # branch：整分支 vs master 累计变更，全维度（默认）
-/branch-review-guard branch --base develop    # 改对比基线（缺省自动探测 master/main）
-/branch-review-guard module <模块名>           # 只深审某模块（缩范围、提精度）
-/branch-review-guard diff                     # 仅未提交变更（边写边查，最快）
-/branch-review-guard recent 3                 # 最近 N 个提交
+/branch-review-guard:review                          # branch：整分支 vs master 累计变更，全维度（默认）
+/branch-review-guard:review branch --base develop    # 改对比基线（缺省自动探测 master/main）
+/branch-review-guard:review module <模块名>           # 只深审某模块（缩范围、提精度）
+/branch-review-guard:review diff                     # 仅未提交变更（边写边查，最快）
+/branch-review-guard:review recent 3                 # 最近 N 个提交
 ```
 
 **选项**：`--base <分支>`（对比基线）、`--dimensions <逗号分隔>`（只跑部分维度）。维度取值：`bug`（正确性）`design`（设计/质量）`security`（安全）`test`（测试）`api`（兼容/影响/回归）`perf`（性能）`observability`（可观测/运维/i18n）。例：
 
 ```text
-/branch-review-guard branch --dimensions bug,security
-/branch-review-guard module skg-health-global-user --dimensions api,perf
+/branch-review-guard:review branch --dimensions bug,security
+/branch-review-guard:review module skg-health-global-user --dimensions api,perf
 ```
 
 ### 典型时机
 
 | 场景 | 命令 |
 |---|---|
-| 提测/上线前卡点 | `/branch-review-guard` |
-| 迭代期边写边查 | `/branch-review-guard diff` |
-| 聚焦某模块深审 | `/branch-review-guard module <名>` |
-| 复核最近几个提交 | `/branch-review-guard recent <N>` |
+| 提测/上线前卡点 | `/branch-review-guard:review` |
+| 迭代期边写边查 | `/branch-review-guard:review diff` |
+| 聚焦某模块深审 | `/branch-review-guard:review module <名>` |
+| 复核最近几个提交 | `/branch-review-guard:review recent <N>` |
 | 只关心某几维 | `... --dimensions bug,security` |
 
 ### 它会做什么

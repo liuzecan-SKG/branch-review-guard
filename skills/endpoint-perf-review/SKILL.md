@@ -1,6 +1,6 @@
 ---
 name: endpoint-perf-review
-version: 0.2.5
+version: 0.2.6
 description: Review and optimize the performance of a single backend endpoint/interface (entry point + service + remote/DB/cache chain) in a stack-agnostic, evidence-first way, producing a prioritized findings report. Optionally loads stack-specific rules from the pluggable `rules/` packs for mechanism-level depth. Use when asked to review, optimize, refactor, or improve the performance of an API/interface/Service, or to do a post-development performance review.
 ---
 

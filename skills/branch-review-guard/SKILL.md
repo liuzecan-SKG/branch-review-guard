@@ -1,6 +1,6 @@
 ---
 name: branch-review-guard
-version: 0.2.5
+version: 0.2.6
 description: 提测/上线前对整条功能分支（相对主分支的累计变更）做多维度综合代码评审的编排器。统一调度"正确性/Bug、设计/可维护性、安全、测试、可观测/运维、i18n"等自包含 reviewer，并复用 api-change-guard（API/兼容/影响/回归）与 endpoint-perf-review（性能）作为其中两个维度，强制大 diff 分批全覆盖，按可插拔 rules/ 规则包注入技术栈特有深度，产出单份中文可发布性评审报告。当需要在合并前对一条功能分支做一次性、全面的 code review 时使用。
 ---
 
@@ -41,9 +41,9 @@ description: 提测/上线前对整条功能分支（相对主分支的累计变
 
 - `读取 tools/branch-review-guard/SKILL.md，对当前分支相对主分支做提测前综合评审`
 
-命令：
+命令（**Claude Code 插件形态**为命名空间命令 `/branch-review-guard:review`；其它形态如 Cursor/安装器为 `/branch-review-guard`，或直接用自然语言触发本 skill。下列以模式与选项为准）：
 
-- `/branch-review-guard` —— 默认 = `branch`，分支相对 base 的累计变更全维度评审（合并前评审，最常用）
+- `/branch-review-guard:review` —— 默认 = `branch`，分支相对 base 的累计变更全维度评审（合并前评审，最常用）
 - `/branch-review-guard branch [--base <分支>] [--dimensions <维度逗号分隔>]`
 - `/branch-review-guard module <模块名>` —— 只深审某个模块（缩小范围、提高深度）
 - `/branch-review-guard diff` —— 仅未提交变更

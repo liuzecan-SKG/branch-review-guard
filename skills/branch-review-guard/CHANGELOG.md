@@ -2,6 +2,13 @@
 
 本文件记录 Branch Review Guard 的演进。
 
+## [0.2.6] - 2026-06-29
+
+### Changed
+
+- **斜杠命令规范化为 `/branch-review-guard:review`**：Claude Code 插件命令带命名空间 `<插件名>:<命令名>`，原命令文件名 `branch-review-guard.md` 会得到难看且报 Unknown 的裸 `/branch-review-guard`（实为 `/branch-review-guard:branch-review-guard`）。将命令重命名为 `commands/review.md`，规范调用即 **`/branch-review-guard:review`**（参考成熟插件 `<plugin>:<verb>` 惯例）。README/SKILL.md/AGENTS.md 全部统一为该写法，并说明非插件形态（Cursor/安装器）用 `/branch-review-guard` 或自然语言触发。
+- 三个 `skills/*/SKILL.md` 与 `plugin.json`/`manifest.json` 版本同步至 `0.2.6`。
+
 ## [0.2.5] - 2026-06-29
 
 ### Changed
