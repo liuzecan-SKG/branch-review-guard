@@ -28,7 +28,7 @@
 ```
 
 - **一键启停**：`/plugin` 启用/禁用整套，连带 3 个 skill、5 个维度子代理、`/branch-review-guard` 命令一起上下线，无残留。
-- **装好后建议立即开启 auto-update**（取代手动更新，详见下方 [更新与卸载](#更新与卸载)）：`/plugins` → Marketplaces → 选本插件 → Enable auto-update。此后每次启动自动对齐最新版。
+- **装好后建议立即开启 auto-update**（取代手动更新，详见下方 [更新与卸载](#更新与卸载)）：在 `.claude/settings.json` 给本 marketplace 加 `"autoUpdate": true`（当前 VSCode 扩展 UI 无此开关，以 settings 为准）。此后每次启动自动对齐最新版。
 - **版本迭代**：`.claude-plugin/plugin.json` 的 `version`(SemVer) 控制；配合 auto-update 自动下发。
 - **部门复用**：同事执行上面 `marketplace add` 即可接入，取代手工拷目录。
 - **维度子代理**：插件预置 `bru-correctness` / `bru-design` / `bru-security` / `bru-tests` / `bru-observability` 五个只读子代理，编排器按批并行派发、上下文隔离（不支持子代理的环境自动回退顺序多轮）。
@@ -86,10 +86,12 @@ tools/branch-review-guard   tools/api-change-guard   (及随其安装的 tools/b
 
 本套件**以 auto-update 作为标准更新方式**——开启后每次 Claude Code 启动会自动 `git pull` 最新版并**激活**，免去"刷新 → 激活"两步、也规避当前 UI 看不到版本号的困扰。**装好后建议立即开启，之后无需任何手动更新操作。**
 
-开启方式（任一）：
+**开启方式 = 编辑 settings.json**（Claude Code 启动时从 settings 同步 `autoUpdate` 到 marketplace）。⚠️ **当前 VSCode 扩展 UI（实测 2.1.x）没有 auto-update 开关；CLI 的 `/plugin` 命令在 VSCode 扩展里也不可用**——故 VSCode 用户必须走 settings.json：
 
-- **VSCode 扩展**：`/plugins` → **Marketplaces** 选项卡 → 选 `branch-review-guard` → **Enable auto-update**，然后 `Developer: Reload Window`。
-- **`.claude/settings.json`（推荐，可随分支共享给同事）**：marketplace 条目加 `"autoUpdate": true`：
+- **随分支共享给同事**：项目 `.claude/settings.json`
+- **仅本机**：用户级 `~/.claude/settings.json`（`C:\Users\<你>\.claude\settings.json`）
+
+二者内容相同：
 
 ```json
 {
@@ -103,7 +105,9 @@ tools/branch-review-guard   tools/api-change-guard   (及随其安装的 tools/b
 }
 ```
 
-> 开启后，维护方每次发布（bump 版本）你**下次启动即自动拿到**，无需手动刷新/激活。
+存盘后 `Developer: Reload Window`。
+
+> 开启后，维护方每次发布（bump 版本）你**下次启动即自动 pull + 激活**，无需手动刷新。
 
 ### 手动更新（仅在未开 auto-update 时的兜底）
 

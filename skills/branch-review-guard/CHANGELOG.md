@@ -2,6 +2,13 @@
 
 本文件记录 Branch Review Guard 的演进。
 
+## [0.2.4] - 2026-06-29
+
+### Fixed
+
+- **更正 auto-update 开启方式（之前文档写错）**：经核实本机 `claude.exe` 2.1.195 源码字符串（`"Synced autoUpdate= from settings for marketplace"`），auto-update **从 settings.json 读取**，**当前 VSCode 扩展 UI 并无 "Enable auto-update" 开关**，`/plugin` CLI 命令在 VSCode 扩展里也不可用。故 README/设计文档原先"`/plugins` → Enable auto-update"的说法错误，已改为：在 `.claude/settings.json`（项目级随分支共享）或 `~/.claude/settings.json`（用户级仅本机）的 `extraKnownMarketplaces.<name>` 加 `"autoUpdate": true`，存盘后 Reload Window。
+- 确认真实可用命令（CLI）：`/plugin install|uninstall|enable|disable|update`、`/plugin marketplace update`。
+
 ## [0.2.3] - 2026-06-29
 
 ### Changed
