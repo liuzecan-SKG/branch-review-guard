@@ -32,7 +32,7 @@
 }
 ```
 
-存盘后 `Ctrl+Shift+P` → **Reload Window**。
+存盘后用 `Ctrl+Shift+P` → **Developer: Restart Extension Host** 让其生效（见[更新](#更新)的生效说明）。
 
 ### B. 其它 Agent（Cursor / Codex / Cline 等）
 
@@ -97,6 +97,8 @@ node -e "const d=require(require('os').homedir()+'/.claude/plugins/installed_plu
 
 - **开了 auto-update**：每次启动自动 pull + 激活最新，无需任何操作（推荐，见[安装](#a-claude-code-原生插件推荐)）。
 - **手动兜底**：VSCode `/plugins` → Marketplaces 刷新 → Plugins 对插件 Update/Install；CLI `/plugin marketplace update branch-review-guard` 再重装。
+
+**让更新/配置变更生效**：`Ctrl+Shift+P` → **Developer: Restart Extension Host**（重启扩展宿主，比重启 VS Code 轻）。注意：VSCode 扩展里 `Reload Window` 往往**不足以**重载插件（常驻 agent 会话未重置），且 `/reload-plugins`、`/restart-agent` 等命令不可用——以 Restart Extension Host 为准。
 
 > "刷新 marketplace ≠ 激活已安装插件"、"`version` 钉住需每次发布 bump" 等机制细节见 [CHANGELOG.md](skills/branch-review-guard/CHANGELOG.md)。
 

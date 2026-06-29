@@ -2,6 +2,13 @@
 
 本文件记录 Branch Review Guard 的演进。
 
+## [0.2.7] - 2026-06-29
+
+### Changed
+
+- **更新生效方式改为 `Developer: Restart Extension Host`**：实测 VSCode 扩展里 `Reload Window` 往往不足以重载插件（常驻 agent 会话未重置），且 `/reload-plugins`、`/restart-agent` 命令不可用。README 移除 `Reload Window` 指引，统一改为 `Ctrl+Shift+P → Developer: Restart Extension Host`（重启扩展宿主，比整体重启 VS Code 轻），并在「更新」节加"让更新/配置变更生效"说明。
+- plugin.json / manifest.json 版本 `0.2.6` → `0.2.7`（交付该文档更新）。
+
 ## [0.2.6] - 2026-06-29
 
 ### Changed
