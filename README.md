@@ -31,6 +31,34 @@
 - **只想用、不想装**：让 Agent 直接读 `skills/branch-review-guard/SKILL.md`（它会复用 `skills/api-change-guard`、`skills/endpoint-perf-review`、`rules/`）。
 - **跨 Agent 说明**见 [AGENTS.md](AGENTS.md)；安装细节见 [INSTALL.md](INSTALL.md)。Cursor 的 `.mdc` 与 `.cursor`/`.claude` 镜像是**可选增强**，不装也能用。
 
+## 升级与迁移（项目里已有旧 skill 副本时）
+
+采纳本套件分两种场景，**插件路径与通用安装器路径行为不同**，务必区分：
+
+### 场景一：全新项目（从未装过这些 skill）
+
+直接按上面任一方式安装即可，无冲突。
+
+### 场景二：项目里已存在旧的 skill 目录（曾手工拷过 / 装过早期版本）
+
+| 安装路径 | 旧副本的处理 | 你要做什么 |
+|---|---|---|
+| **插件（`/plugins`）** | 插件**不拷文件进项目、不"覆盖"旧副本**；项目里的旧 `tools/<name>`、`.claude/skills/<name>`、`.cursor/skills/<name>` 会**遮蔽**插件（`/branch-review-guard` 命中旧版而非插件最新版）。 | **先删除旧副本**，插件自带最新版顶上（见下方清单）。 |
+| **通用安装器（`install/SKILL.md`）** | 安装器以各 `SKILL.md` 的 `version:` 做**版本感知覆盖 + 自动备份**（`<target>.bak-<时间戳>/`）。 | 直接重跑安装器即可，旧副本被最新版覆盖。 |
+
+**插件路径下需删除的旧副本**（仅本套件三个 skill + 其 Cursor `.mdc`；`design-to-api` 等其它 skill 不动）：
+
+```text
+.claude/skills/branch-review-guard   .claude/skills/api-change-guard
+.cursor/skills/branch-review-guard   .cursor/skills/api-change-guard   .cursor/skills/endpoint-perf-review
+.cursor/rules/branch-review-guard.mdc   .cursor/rules/endpoint-perf-review.mdc
+tools/branch-review-guard   tools/api-change-guard   (及随其安装的 tools/branch-review-guard/rules)
+```
+
+> 也可把这句丢给 Agent 自动迁移：“删除本项目中 branch-review-guard / api-change-guard / endpoint-perf-review 这三个 skill 的旧本地副本（`tools/`、`.claude/skills/`、`.cursor/skills/`、`.cursor/rules/*.mdc`），保留其它 skill，改由已安装的 branch-review-guard 插件提供最新版。”
+>
+> 删除后在 `/plugins` 里对 `branch-review-guard` 执行 Update/Refresh，确保用的是插件最新版。**插件本身无法删除消费方项目里的文件**（这是插件机制限制），故场景二的清理须由使用方执行。
+
 ## 它包含什么
 
 - **branch-review-guard**（主 skill / 编排器）：分批全覆盖、按风险聚焦、L1/L2/L3 护栏、可发布性报告。

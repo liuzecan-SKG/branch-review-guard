@@ -42,6 +42,7 @@ cp cursor-rules/endpoint-perf-review.mdc <project>/.cursor/rules/endpoint-perf-r
 
 - 安装器以各 skill `SKILL.md` 的 `version:` 判断已装版本，按"升级则备份+覆盖、降级默认不覆盖（需 --force）、同版本跳过"处理。
 - 备份位置：`<target>.bak-<时间戳>/`。手动安装请自行先备份已存在的同名目录。
+- **Claude Code 插件路径不同**：插件不拷文件进项目、不覆盖旧副本；项目里已有的旧 skill 目录会**遮蔽**插件，需**先删除**旧副本（清单与迁移指引见 [README 的"升级与迁移"](README.md#升级与迁移项目里已有旧-skill-副本时)）。版本感知覆盖仅适用于本安装器路径。
 
 ## 前置
 
