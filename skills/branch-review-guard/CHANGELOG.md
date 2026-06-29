@@ -2,6 +2,19 @@
 
 本文件记录 Branch Review Guard 的演进。
 
+## [0.2.1] - 2026-06-29
+
+### Added
+
+- **Claude Code 原生插件封装（叠加，不影响通用安装器）**：仓库新增 `.claude-plugin/`（`plugin.json` + 单插件 `marketplace.json`，`source: "./"`），使其可经 `/plugin marketplace add liuzecan-SKG/branch-review-guard` + `/plugin install branch-review-guard@branch-review-guard` 一键安装、启停、按 `version` 迭代、部门内复用。`skills/` 与 `rules/` 内核与原通用安装器（`manifest.json`）**共享同一份**，两种封装出口共存。
+- **`/branch-review-guard` slash 命令**（`commands/branch-review-guard.md`）：解析 `branch|diff|recent|module` 与 `--base/--dimensions`，委派 `branch-review-guard` skill 执行。
+- **5 个只读维度子代理**（`agents/bru-*.md`）：`bru-correctness`、`bru-design`、`bru-security`、`bru-tests`、`bru-observability`。编排器在 Claude Code 插件形态下按批并行派发，上下文隔离；不支持子代理的环境自动回退顺序多轮。各子代理以对应 `prompts/review-*.md` 为权威清单并内置回退清单 + `rules/` 加载约定。
+- `orchestrate-branch-review.md` 第 6 步补充：插件形态优先派发上述命名子代理。
+
+### Notes
+
+- 本次为 v0.2 线内的**叠加式**小版本：默认 `branch` 全量评审行为、规则机制、L1/L2/L3 诚实护栏均不变；`manifest.json` / `plugin.json` 同步至 `0.2.1`。
+
 ## [0.2.0] - 2026-06-26
 
 ### Changed

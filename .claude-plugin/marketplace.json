@@ -1,0 +1,15 @@
+{
+  "name": "branch-review-guard",
+  "description": "SKG 整分支综合代码评审套件的 Claude Code 插件市场（单插件，仓库本身即 marketplace 根）。",
+  "owner": {
+    "name": "liuzecan-SKG",
+    "url": "https://github.com/liuzecan-SKG"
+  },
+  "plugins": [
+    {
+      "name": "branch-review-guard",
+      "description": "提测/上线前整分支多维度综合代码评审：编排器 + 维度子代理 + api-change-guard/endpoint-perf-review 复用 + 可插拔规则。",
+      "source": "./"
+    }
+  ]
+}

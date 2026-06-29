@@ -1,0 +1,13 @@
+{
+  "name": "branch-review-guard",
+  "description": "提测/上线前对整条功能分支做多维度综合代码评审：编排器 skill + 5 个维度子代理 + 复用 api-change-guard/endpoint-perf-review + 可插拔规则包；自包含、可移植、给可发布性裁决。",
+  "version": "0.2.1",
+  "author": {
+    "name": "liuzecan-SKG",
+    "url": "https://github.com/liuzecan-SKG"
+  },
+  "homepage": "https://github.com/liuzecan-SKG/branch-review-guard",
+  "repository": "https://github.com/liuzecan-SKG/branch-review-guard",
+  "license": "MIT",
+  "keywords": ["code-review", "branch-review", "release-gate", "spring-boot", "subagents"]
+}
