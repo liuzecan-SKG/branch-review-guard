@@ -2,6 +2,16 @@
 
 本文件记录 Branch Review Guard 的演进。
 
+## [0.2.2] - 2026-06-29
+
+### Changed
+
+- **版本 bump 以触发插件下发**：因 `plugin.json` 设了 `version`，插件被钉死在该版本字符串——`0.2.1` 上后续 push 的 commit 不会下发给已安装用户。本版将 `plugin.json` / `manifest.json` bump 到 `0.2.2`，把以下自 `0.2.1` 起的改动真正交付：复用依赖 skill 的插件形态感知修复、"升级与迁移（场景二）"文档、安装三路径对照与重构。
+
+### Added
+
+- **README 新增「更新与卸载」章节**：明确日常更新无需删项目文件（VSCode `/plugins` 刷新+Install / CLI `marketplace update`+重装）；**版本钉住规则**（维护者每次发布须 bump `version`，否则消费方拿不到更新；或删 `version` 用 commit SHA 自动下发）；自动更新选项；禁用/卸载命令（CLI + VSCode）与"干净卸载、无项目残留"说明。
+
 ## [0.2.1] - 2026-06-29
 
 ### Added

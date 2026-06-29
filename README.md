@@ -77,6 +77,35 @@ tools/branch-review-guard   tools/api-change-guard   (及随其安装的 tools/b
 >
 > 删除后在 `/plugins` 里对 `branch-review-guard` 执行 Update/Refresh，确保用的是插件最新版。**插件本身无法删除消费方项目里的文件**（这是插件机制限制），故场景二的清理须由使用方执行。
 
+## 更新与卸载
+
+### 更新到最新版（不需要删任何项目文件）
+
+插件从 GitHub 仓库加载，更新**不碰项目文件**（删文件只是首次迁移的一次性动作，见上节）：
+
+| 环境 | 操作 |
+|---|---|
+| **VSCode 扩展** | `/plugins` → **Marketplaces** 选项卡对 `branch-review-guard` 点**刷新** → 回 **Plugins** 选项卡对插件点 **Install**（覆盖为最新） |
+| **CLI** | `/plugin marketplace update branch-review-guard` 然后 `/plugin install branch-review-guard@branch-review-guard`（重装会检测版本变化并更新） |
+
+> ⚠️ **维护者必读 · 版本钉住规则**：`plugin.json` 设了 `version` 后，插件被**钉死在该版本字符串**。只 push 新 commit、不改 `version`，**已安装用户不会拿到更新**（Claude Code 看到同一 `version` 沿用缓存）。因此**每次发布必须 bump `plugin.json` 与 `manifest.json` 的 `version`**（与 `CHANGELOG.md` 同步）。
+>
+> 替代方案：删掉 `version` 字段 → Claude Code 以 commit SHA 当版本，每个 commit 自动下发（适合内部活跃迭代，但失去 SemVer 语义）。本套件**保留 `version` + 每次发布 bump**。
+
+### 自动更新（可选，免手动）
+
+marketplace 开 auto-update：`/plugins` UI 对 marketplace 选 **Enable auto-update**，或 `.claude/settings.json` 的 `extraKnownMarketplaces.<name>` 加 `"autoUpdate": true`。仍受版本钉住规则约束（`version` 不 bump 则无新版可取）。
+
+### 禁用 / 卸载（干净，无项目残留）
+
+| 操作 | VSCode 扩展 | CLI | 效果 |
+|---|---|---|---|
+| **禁用**（保留安装） | Plugins → 详情 → **Disable** | `/plugin disable branch-review-guard@branch-review-guard` | 停用，不删文件，可随时 Enable |
+| **完全卸载** | Plugins → 详情 → **Uninstall** | `/plugin uninstall branch-review-guard@branch-review-guard` | 移除插件；**项目里无残留**（插件仅缓存于 `~/.claude/plugins/cache`，从不往项目拷文件） |
+
+- 编辑 `.claude/settings.json`：`enabledPlugins` 的 `true/false` 只控制**启用/禁用**，不等于卸载；从 `extraKnownMarketplaces` 移除该 marketplace 的最后一个引用会**连带卸载**其插件。
+- 彻底清缓存（排障用）：`rm -rf ~/.claude/plugins/cache`。
+
 ## 它包含什么
 
 - **branch-review-guard**（主 skill / 编排器）：分批全覆盖、按风险聚焦、L1/L2/L3 护栏、可发布性报告。
