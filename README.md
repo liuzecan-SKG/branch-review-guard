@@ -3,17 +3,18 @@
 提测/上线前对**整条功能分支**（相对 master 的累计变更）做多维度综合评审、给出**可发布性裁决**的 Claude Code 插件。
 
 - 🎯 **整分支 · 强制全覆盖**：上万行也分批读完，报告显式声明覆盖率，绝不把没读的当已审。
-- 🧩 **多维并行**：正确性 / 设计 / 安全 / 测试 / 可观测 / i18n + API 兼容 + 接口性能；内置 **5 个只读子代理**分维度并行、上下文隔离。
+- 🧩 **多维并行**：正确性 / 设计 / 安全 / 测试 / 可观测 / i18n + API 兼容 + 接口性能；内置 **7 个只读子代理**（5 维度 + 怀疑者 + 批评家）并行、上下文隔离。
+- 🥊 **对抗验证降误报**：每条 P0/P1 经 3 视角怀疑者投票（证据/规则/触发路径），反驳须给 file:line 级反证；阻塞清单基本免人工甄别。收尾另有完整性批评家给覆盖率独立对账。
 - ⚖️ **可发布性裁决**：阻塞 / 有条件通过 / 通过 + Top 风险 + must-fix 清单，直接支撑 go/no-go。
 - 🛡️ **诚实边界**：运行时项（性能 / 并发 / 迁移）只给"需验证项"，**绝不下"已通过"**。
-- 🔌 **可插拔规则**：栈无关核心 + 可开关栈包（`baseline` 默认开、`skg-spring` 可选）。
+- 🔌 **可插拔规则**：栈无关核心 + 可开关栈包（`baseline` 默认开、`skg-spring` 默认关但**同栈项目自动识别启用**，标记可配）。
 - 📦 **一键启停 / 版本 / 部门复用**：装·停·升级一条命令，团队随分支共享。
 
 ## 安装
 
 ### A. Claude Code 原生插件（推荐）
 
-本仓库即一个 **Claude Code 插件 + 单插件 marketplace**（`.claude-plugin/`），一键装全套（3 skill + 5 维度子代理 + `/branch-review-guard:review` 命令），支持启停/版本/部门复用。
+本仓库即一个 **Claude Code 插件 + 单插件 marketplace**（`.claude-plugin/`），一键装全套（3 skill + 7 只读子代理 + `/branch-review-guard:review`、`/branch-review-guard:distill` 命令），支持启停/版本/部门复用。
 
 - **VSCode 扩展**：`/plugins` → **Marketplaces** 标签填 `liuzecan-SKG/branch-review-guard` 点 **Add** → **Plugins** 标签点 **Install**。
 - **CLI（终端 `claude`）**：
@@ -64,12 +65,14 @@
 /branch-review-guard:review recent 3                 # 最近 N 个提交
 ```
 
-**选项**：`--base <分支>`（对比基线）、`--dimensions <逗号分隔>`（只跑部分维度）。维度取值：`bug`（正确性）`design`（设计/质量）`security`（安全）`test`（测试）`api`（兼容/影响/回归）`perf`（性能）`observability`（可观测/运维/i18n）。例：
+**选项**：`--base <分支>`（对比基线）、`--dimensions <逗号分隔>`（只跑部分维度）、`--thorough`（高风险批次追加"新鲜眼"二轮扫描，连续一轮无新发现即停）。维度取值：`bug`（正确性）`design`（设计/质量）`security`（安全）`test`（测试）`api`（兼容/影响/回归）`perf`（性能）`observability`（可观测/运维/i18n）。例：
 
 ```text
 /branch-review-guard:review branch --dimensions bug,security
 /branch-review-guard:review module skg-health-global-user --dimensions api,perf
 ```
+
+**配套命令** `/branch-review-guard:distill [N]`：从本地最近 N 份评审报告聚类重复发现，生成 `rules/` 候选规则草稿（漏报→finding、误报→calibration），人工确认后提交回本仓库生效——评审越用越准，教训还能反哺开发侧。
 
 ### 典型时机
 
@@ -86,7 +89,8 @@
 1. 建上下文（读 `*_DESIGN.md`/`*_CONTRACT.md`/commit message）→ 自动化先行(L1) → 加载启用的 `rules/` 规则包 → 估规模分批（大 diff 强制全覆盖）。
 2. **插件形态**：按批并行派发 5 个只读维度子代理（`bru-*`），上下文隔离；不支持子代理的环境自动顺序多轮。
 3. 复用 `api-change-guard`（兼容/影响/回归）与 `endpoint-perf-review`（仅高风险接口性能）。
-4. 汇总去重、统一定级（P0/P1/P2/Nit），产出**一份中文报告**：可发布性结论 + Top 风险 + 分维度发现 + 阻塞清单 + 覆盖率声明。运行时维度只给"需运行时验证项"，不下"已验证通过"。
+4. **对抗性验证**：每条 P0/P1 派 3 个视角的怀疑者（`bru-skeptic`）投票，反驳 ≥2 票否决、1 票降级标争议、0 票标"已对抗验证"；被否项留附录备查。
+5. 汇总去重、统一定级（P0/P1/P2/Nit），再由完整性批评家（`bru-critic`）对账覆盖率与漏项后定稿，产出**一份中文报告**：可发布性结论 + Top 风险 + 分维度发现 + 阻塞清单（仅收经验证项） + 覆盖率声明。运行时维度只给"需运行时验证项"，不下"已验证通过"。
 
 报告生成在项目内 `branch-review-reports/`（不存在即创建；若项目装有 `tools/branch-review-guard/reports/` 则沿用），命名 `branch-review-guard-<mode>-<shortSha>-<timestamp>.md`。
 

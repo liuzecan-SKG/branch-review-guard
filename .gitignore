@@ -5,3 +5,6 @@ skills/*/reports/*
 # 安装器覆盖时产生的备份
 *.bak-*/
 *.bak-*
+
+# IDE
+.idea/

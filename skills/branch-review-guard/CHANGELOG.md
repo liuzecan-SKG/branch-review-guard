@@ -2,6 +2,27 @@
 
 本文件记录 Branch Review Guard 的演进。
 
+## [0.3.0] - 2026-07-03
+
+v0.3.0 引入**质量编排层**：用结构对抗"看似合理但错"（误报）与"读过但没看出来 / 评审自身漏项"（漏报）。设计 rationale 见维护方设计文档 `BRANCH_REVIEW_GUARD_PLUGIN_DESIGN.md` §11。
+
+### Added
+
+- **对抗性验证（降误报）**：新增子代理 `agents/bru-skeptic.md` + `prompts/verify-findings.md`。每条 P0/P1 在汇总前经 3 个**不同视角**怀疑者投票（①证据核实 ②规则校准 ③触发路径）；有效反驳必须给 file:line 级反证或规则 id，"感觉不严重"按维持计；反驳 ≥2 票否决（移入报告新第 14 章附录留证）、恰 1 票降级一档保留标 `⚠有争议`、0 票维持标 `✓已对抗验证`。阻塞清单只收经验证发现，目标是免人工逐条甄别。P2/Nit 不验（成本控制）。token 成本预期上浮约 30-60%（随 P0/P1 数量），已获使用方确认接受。
+- **完整性批评家（防漏）**：新增子代理 `agents/bru-critic.md` + `prompts/completeness-critic.md`。报告定稿前独立核查"评审本身"：覆盖率对账（声明 vs 批次回执并集）、维度完整性（有无静默跳过）、可疑的零（高风险批次零发现不默认干净）、待确认遗漏、诚实边界表述；小缺口补审（新 P0/P1 同样过验证）、补不动的如实修正覆盖声明，结论写入第 13 章。
+- **`--thorough` 二轮扫描（可选，非默认）**：首轮后仅对高风险批次（对外契约/事务并发/鉴权/公共代码）追加"新鲜眼"扫描，连续一轮无新发现即停；去重对照"所有见过的发现（含被否决的）"防复活循环。
+- **`/branch-review-guard:distill` 反馈闭环**：新增 `commands/distill.md` + `prompts/distill-rules.md`。读取目标项目**本地**报告目录最近 N 份报告，聚类重复发现——漏报模式（≥2 次）→ 候选 `finding` 规则草稿、对抗验证附录中反复被否模式 → 候选 `calibration` 草稿；草稿落本地 `rule-drafts/`（`enabled: false`），**人工确认后**提交回插件仓库 `rules/<pack>/` 才生效，绝不自动写规则包（防单 case 过拟合）。开发侧引用同套 rules/ 的"修法"节即可把评审教训前置为写码禁区。
+- **上线协同项全豁免**：新增 `rules/skg-spring/calibration-release-orchestration.md`——新表/MQ topic/消费组/缓存 key 预建、配置各环境就绪、发版编排类提示直接越过不报告（团队有独立上线 checklist 兜底）；分支内真实包含的 `*.sql`/配置 diff 与代码自身装配缺陷不在豁免内。
+- **报告末尾固定 todo 提示**：报告正文后固定附"是否需要将可直接代码落地修复的项提炼成 todo 清单（剔除运行时验证/发版编排/人工确认类），按必要性×成本分三档"，用户确认后再生成。
+- **规则包自动识别启用（auto_enable）**：`rules/config.yaml` 的栈包可配 `auto_enable.project_markers`；评审加载规则包时按标记做**确定性匹配**（仓库/模块目录名、`pom.xml` 等构建文件 groupId/artifactId），命中则该包本次运行自动启用——不修改 config 文件，报告注明"（自动识别启用）"。`skg-spring` 预置标记 `skg-health-global`/`skg_health_global`，发布默认仍 `enabled: false`，同栈项目零配置获得机制级深度，其它项目不受影响。
+
+### Changed
+
+- `SKILL.md` 工作流程 1→10 扩为 **1→12**（插入第 8 步对抗性验证、第 10 步完整性核查），新增 `## 对抗性验证与完整性核查（质量编排层）` 与 `## 反馈闭环（distill）` 两节；orchestrate / consolidate / review 命令三处同步（含自主执行口径）。
+- 报告模板：第 1 章新增验证与核查方法行；第 10 章只收经对抗验证项（带 `✓/⚠` 标注）；第 13 章新增"完整性核查（批评家）"小节；新增**第 14 章附录：对抗验证记录**。
+- README/AGENTS.md/plugin.json：子代理数 5 → **7**（5 维度 + 怀疑者 + 批评家），命令 1 → 2（review + distill）。
+- 版本同步：`SKILL.md`/plugin/manifest → 0.3.0；修正 manifest.json 中 skills 条目版本与各 `SKILL.md` frontmatter 的历史脱节（api-change-guard、endpoint-perf-review 条目 0.2.0 → 0.2.6）。
+
 ## [0.2.9] - 2026-06-29
 
 ### Fixed

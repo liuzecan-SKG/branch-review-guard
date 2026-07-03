@@ -10,6 +10,14 @@
 
 启用哪些包由 `rules/config.yaml` 控制（安装器会按 `--rules` 写入）。
 
+### 自动识别启用（auto_enable）
+
+`enabled: false` 的栈包可配置 `auto_enable.project_markers`（字符串列表）。评审加载规则包时按标记探测目标项目——任一标记命中**仓库根目录名 / 模块目录名 / `pom.xml` 等构建文件的 groupId/artifactId** 即视为同栈项目，该包**本次运行自动启用**：
+
+- 只影响当次评审，**不修改 `config.yaml`**；报告"已启用规则包"处注明"（自动识别启用）"。
+- 优先级：显式 `enabled: true` > auto_enable 命中 > 默认关闭；`severity_overrides` / `disabled_rules` 照常生效。
+- 探测只做**确定性字符串匹配**，不做"看起来像同栈"的模糊推断——宁可让用户显式开，不误开别人的项目。
+
 ## 规则文件 schema
 
 每条规则是一个 markdown 文件，frontmatter 为元数据，正文为方法。
@@ -46,7 +54,7 @@ summary: 一句话：这条规则在查/校准什么
 
 每个维度 reviewer 在跑通用 checklist 的同时：
 
-1. **加载**：读取 `rules/config.yaml` 里 `enabled: true` 的包，取其中 `dimension` 匹配本维度、且 `applies_to` 匹配当前仓库（语言/框架/路径）的规则。
+1. **加载**：读取 `rules/config.yaml` 里 `enabled: true` 的包，外加 `auto_enable` 标记命中当前项目而运行时启用的包（见上节）；取其中 `dimension` 匹配本维度、且 `applies_to` 匹配当前仓库（语言/框架/路径）的规则。
 2. **应用 finding 规则**：按"识别要点 + 取证方式"在本批文件里找命中；命中则按 `severity` 产出一条发现（`[P*] <维度> — 问题 — file:line — 影响 — 建议`），并按"取证方式"判真伪、降误报。
 3. **应用 calibration 规则**：按"校准动作"对相应发现类做降噪（直接越过 / 降级），优先级高于 finding 的默认定级。
 4. **缺包降级**：某栈包未启用时，对应的机制级深度自然缺席——这是预期；核心通用 checklist 仍照常跑。不要因为"没装某包"就报错。
