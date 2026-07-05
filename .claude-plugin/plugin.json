@@ -1,7 +1,7 @@
 {
   "name": "branch-review-guard",
   "description": "提测/上线前对整条功能分支做多维度综合代码评审：编排器 skill + 7 个只读子代理（5 维度评审 + 对抗验证怀疑者 + 完整性批评家）+ 复用 api-change-guard/endpoint-perf-review + 可插拔规则包 + distill 反馈闭环；自包含、可移植、给可发布性裁决。",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "author": {
     "name": "liuzecan-SKG",
     "url": "https://github.com/liuzecan-SKG"
