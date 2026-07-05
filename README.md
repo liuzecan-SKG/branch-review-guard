@@ -14,7 +14,7 @@
 
 ### A. Claude Code 原生插件（推荐）
 
-本仓库即一个 **Claude Code 插件 + 单插件 marketplace**（`.claude-plugin/`），一键装全套（3 skill + 7 只读子代理 + `/branch-review-guard:review`、`/branch-review-guard:distill` 命令），支持启停/版本/部门复用。
+本仓库即一个 **Claude Code 插件 + 单插件 marketplace**（`.claude-plugin/`），一键装全套（3 skill + 7 只读子代理 + `/branch-review-guard:review`、`:distill`、`:rule` 命令），支持启停/版本/部门复用。
 
 - **VSCode 扩展**：`/plugins` → **Marketplaces** 标签填 `liuzecan-SKG/branch-review-guard` 点 **Add** → **Plugins** 标签点 **Install**。
 - **CLI（终端 `claude`）**：
@@ -72,7 +72,10 @@
 /branch-review-guard:review module skg-health-global-user --dimensions api,perf
 ```
 
-**配套命令** `/branch-review-guard:distill [N]`：从本地最近 N 份评审报告聚类重复发现，生成 `rules/` 候选规则草稿（漏报→finding、误报→calibration），人工确认后提交回本仓库生效——评审越用越准，教训还能反哺开发侧。
+**配套命令（反馈闭环）**：
+
+- `/branch-review-guard:distill [N]`：从本地最近 N 份评审报告**按代码实例**聚类重复发现，生成 `rules/` 候选规则草稿（漏报→finding、误报→calibration），人工确认后提交回本仓库生效——评审越用越准，教训还能反哺开发侧。会把"一直没改的老问题"分诊为**遗留项**单列（不误当漏报固化成规则），交你决定排期修或转豁免。
+- `/branch-review-guard:rule <描述> [--type finding|calibration]`：一句话**手动**快捷加一条规则草稿（绕过 distill 的 ≥2 次阈值、由人担保泛化）；适合把遗留项一键转 calibration，或一眼确信要规则化的强 case。同样走"草稿→人工确认→提交生效"的关卡。
 
 ### 典型时机
 

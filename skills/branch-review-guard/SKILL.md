@@ -1,6 +1,6 @@
 ---
 name: branch-review-guard
-version: 0.3.0
+version: 0.4.0
 description: 提测/上线前对整条功能分支（相对主分支的累计变更）做多维度综合代码评审的编排器。统一调度"正确性/Bug、设计/可维护性、安全、测试、可观测/运维、i18n"等自包含 reviewer，并复用 api-change-guard（API/兼容/影响/回归）与 endpoint-perf-review（性能）作为其中两个维度，强制大 diff 分批全覆盖，按可插拔 rules/ 规则包注入技术栈特有深度，产出单份中文可发布性评审报告。当需要在合并前对一条功能分支做一次性、全面的 code review 时使用。
 ---
 
@@ -54,7 +54,9 @@ description: 提测/上线前对整条功能分支（相对主分支的累计变
 
 `--thorough`（可选，非默认）：首轮评审后对高风险批次（对外契约/事务并发/鉴权/公共代码）追加"新鲜眼"二轮扫描，连续一轮无新发现即停（见 `## 大 Diff 分批，强制全覆盖`）。
 
-配套命令 **`/branch-review-guard:distill [N]`**：从目标项目本地最近 N 份评审报告聚类重复发现，生成 `rules/` 候选规则草稿（见 `## 反馈闭环（distill）`）。
+配套命令：
+- **`/branch-review-guard:distill [N]`**：从目标项目本地最近 N 份评审报告聚类重复发现，生成 `rules/` 候选规则草稿（见 `## 反馈闭环（distill）`）。
+- **`/branch-review-guard:rule <描述> [--type finding|calibration]`**：把一条已确信的经验**手动**快捷生成一条规则草稿（绕过 distill 的 ≥2 次阈值、由人担保泛化），流程见 `prompts/add-rule.md`。
 
 ## 工作流程
 
@@ -236,9 +238,15 @@ git log HEAD~<N>..HEAD --oneline
 - 注释掉的接口/路由代码不视为真实接口。
 - 运行时维度只给"需运行时验证项"，不下"已通过"。
 
-## 反馈闭环（distill）
+## 反馈闭环（distill + 手动 rule）
 
-评审的历史产出可反哺规则包与开发侧：`/branch-review-guard:distill [N]`（流程见 `prompts/distill-rules.md`）读取**目标项目本地**报告目录的最近 N 份报告，聚类重复发现——漏报模式（同维度同根因 ≥2 次）→ 候选 `finding` 规则草稿；对抗验证附录中反复被否决的模式 → 候选 `calibration` 规则草稿。草稿落在报告目录旁 `rule-drafts/`（`enabled: false`），**人工确认后**提交到插件仓库 `rules/<pack>/` 才生效——绝不自动写入规则包。开发侧 skill / CLAUDE.md 引用同一套 `rules/` 的"修法"节，即可把评审教训前置为写码禁区。
+评审的历史产出可反哺规则包与开发侧，两条入口共享同一套落地关卡（草稿落报告目录旁 `rule-drafts/`、`enabled: false`、**人工确认后**提交插件仓库 `rules/<pack>/` 才生效，**绝不自动写规则包**）：
+
+- **`/branch-review-guard:distill [N]`**（数据驱动，流程见 `prompts/distill-rules.md`）：读**目标项目本地**最近 N 份报告聚类重复发现。**先把每条发现归到"代码实例"（同 file + 同根因，不死磕 file:line）再计数，同一实例跨报告只计 1 次**——漏报模式（同维度同根因跨 **≥2 个不同实例**）→ 候选 `finding`；对抗验证附录中反复被否决的模式 → 候选 `calibration`。
+  - **遗留项分诊**：同一实例在 ≥2 份报告中反复报出、位置基本未变的，**不是漏报**（评审每次都报了、是开发一直没改），从 finding 剔除、单列为「反复报出但未修复的遗留项」，给两个出口——认可是真问题只是没排期 → known-issue 不生成规则；判定不成立/不重要 → 转 `calibration` 让评审器以后豁免。**避免把"一直没改的老问题"误固化成 finding**。
+- **`/branch-review-guard:rule <描述> [--type ...]`**（人担保，流程见 `prompts/add-rule.md`）：把一条已确信的经验**手动**快捷生成规则草稿，**绕过 distill 的 ≥2 次阈值**（泛化由录入人负责）。典型用途：把 distill 遗留项一句话转 calibration，或一眼确信要规则化的强 case。
+
+开发侧 skill / CLAUDE.md 引用同一套 `rules/` 的"修法"节，即可把评审教训前置为写码禁区。
 
 ## 误判记录
 
