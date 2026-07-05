@@ -2,6 +2,26 @@
 
 本文件记录 Branch Review Guard 的演进。
 
+## [0.4.0] - 2026-07-05
+
+v0.4.0 收紧 distill 反馈闭环的**计数语义**，并补一条"人担保"的手动加规则入口，堵住"把一直没改的老问题误固化成规则"的漏洞。
+
+### Fixed
+
+- **distill 漏报计数从"发现条数"改为"代码实例数"**（`prompts/distill-rules.md`）：原逻辑"同根因 ≥2 次 → finding 候选"会把**同一处一直没修的遗留问题**（每次评审都被报一次）误算成"反复出现的模式"。现在**先把每条发现归到"代码实例"（同 file + 同根因语义，不死磕会漂移的 file:line），同一实例跨报告只计 1 次**；finding 候选的判据改为**同根因跨 ≥2 个不同实例**——只有跨多处才是"值得规则化预防的模式"。质量约束节新增对应条目。
+
+### Added
+
+- **distill 遗留项分诊**（`prompts/distill-rules.md` 新增第 5 步）：把"同一实例在 ≥2 份报告中反复报出、位置基本未变"的项从 finding 剔除、单列为「反复报出但未修复的遗留项」。语义澄清：这类**不是漏报**（评审每次都报了，是开发一直没改），反复不改常意味"团队认为它没必要/不成立/不重要"。distill 不替用户裁定，给两个出口——① 认可是真问题只是没排期 → known-issue，不生成规则；② 判定不成立/不重要 → 转 `calibration` 让评审器以后豁免（成为 calibration 规则的**第二个来源**，与"对抗验证被否"并列）。第 8 步输出新增遗留项清单。
+- **手动加规则命令 `/branch-review-guard:rule`**：新增 `commands/rule.md` + `prompts/add-rule.md`。从一句"问题/模式描述"（`--type finding|calibration`、`--pack`、`--dimension`、`--severity`）快捷生成一条规则草稿，走与 distill **完全相同**的落地关卡（`rule-drafts/`、`enabled: false`、人工确认后提交插件仓库才生效）。定位是"**人担保**"入口——**绕过** distill 的 ≥2 次阈值，泛化判断由录入人负责；典型用途：把 distill 的遗留项一句话转 calibration，或一眼确信要规则化的强 case。命令数 2 → 3（review + distill + rule）。
+
+### Changed
+
+- `SKILL.md`：`## 反馈闭环（distill）` 更名扩为 `## 反馈闭环（distill + 手动 rule）`，写入实例计数、遗留项分诊、两条入口共享关卡；调用方式节新增 `rule` 命令；version → 0.4.0。
+- `commands/distill.md`：聚类说明同步实例计数与遗留项分诊。
+- README/AGENTS.md：命令 2 → 3（review + distill + rule）。
+- 版本同步：`SKILL.md`/plugin/manifest（suite + skill 条目）→ 0.4.0。
+
 ## [0.3.0] - 2026-07-03
 
 v0.3.0 引入**质量编排层**：用结构对抗"看似合理但错"（误报）与"读过但没看出来 / 评审自身漏项"（漏报）。设计 rationale 见维护方设计文档 `BRANCH_REVIEW_GUARD_PLUGIN_DESIGN.md` §11。
