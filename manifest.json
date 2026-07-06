@@ -13,7 +13,8 @@
     "config": "rules/config.yaml",
     "packs": [
       { "name": "baseline", "default_enabled": true, "stack": "agnostic" },
-      { "name": "skg-spring", "default_enabled": false, "stack": "spring-boot,dubbo,mybatis,mongodb,satoken,rocketmq" }
+      { "name": "skg-spring", "default_enabled": false, "stack": "spring-boot,dubbo,mybatis,mongodb,satoken,rocketmq" },
+      { "name": "discover-new", "default_enabled": false, "stack": "team-curated" }
     ]
   },
   "skills": [

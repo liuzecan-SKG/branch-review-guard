@@ -22,6 +22,7 @@
 6. **去重**：对照插件当前 `rules/` 中已启用包的规则（读各规则的 `summary`/识别要点），已有规则覆盖的模式不再生成草稿；若已有规则但反复漏判/误判，改为输出"建议修订现有规则 `<id>`"的条目。
 7. **生成草稿**：每个候选一个文件，写到 `<报告目录>/../rule-drafts/`（即 `branch-review-reports/rule-drafts/` 或 `tools/branch-review-guard/reports/rule-drafts/`）：
    - 严格按 `rules/README.md` schema：frontmatter（`id: <pack>/<短名>`、`type`、`dimension`、`severity` 建议值、`applies_to`）+ 正文（识别要点 / 取证方式 / 修法；calibration 用校准动作）。
+   - **默认归 `discover-new` 包**（团队沉淀区；`--pack` 未显式指定时一律用它，不要混进上游预置的 `skg-spring`）——`id` 前缀即 `discover-new/<短名>`。
    - frontmatter 一律 **`enabled: false`**（草稿默认不生效，防止被误当正式规则加载）。
    - 文件顶部加注释块：来源报告文件名 + 命中的发现原文摘录（作为证据链，正式入库时删除）。
 8. **输出**（最终回复）：

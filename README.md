@@ -14,7 +14,7 @@
 
 ### A. Claude Code 原生插件（推荐）
 
-本仓库即一个 **Claude Code 插件 + 单插件 marketplace**（`.claude-plugin/`），一键装全套（3 skill + 7 只读子代理 + `/branch-review-guard:review`、`:distill`、`:rule` 命令），支持启停/版本/部门复用。
+本仓库即一个 **Claude Code 插件 + 单插件 marketplace**（`.claude-plugin/`），一键装全套（3 skill + 7 只读子代理 + `/branch-review-guard:review`、`:diff`、`:distill`、`:rule` 命令），支持启停/版本/部门复用。
 
 - **VSCode 扩展**：`/plugins` → **Marketplaces** 标签填 `liuzecan-SKG/branch-review-guard` 点 **Add** → **Plugins** 标签点 **Install**。
 - **CLI（终端 `claude`）**：
@@ -62,6 +62,7 @@
 /branch-review-guard:review branch --base develop    # 改对比基线（缺省自动探测 master/main）
 /branch-review-guard:review module <模块名>           # 只深审某模块（缩范围、提精度）
 /branch-review-guard:review diff                     # 仅未提交变更（边写边查，最快）
+/branch-review-guard:diff                            # 同上，diff 模式的独立命令入口（等价 review diff）
 /branch-review-guard:review recent 3                 # 最近 N 个提交
 ```
 
@@ -82,7 +83,7 @@
 | 场景 | 命令 |
 |---|---|
 | 提测/上线前卡点 | `/branch-review-guard:review` |
-| 迭代期边写边查 | `/branch-review-guard:review diff` |
+| 迭代期边写边查 | `/branch-review-guard:diff`（= `review diff`） |
 | 聚焦某模块深审 | `/branch-review-guard:review module <名>` |
 | 复核最近几个提交 | `/branch-review-guard:review recent <N>` |
 | 只关心某几维 | `... --dimensions bug,security` |
