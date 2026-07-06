@@ -10,7 +10,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 内容只在 `skills/` + `rules/` 里编写一次（canonical 源），以三种形态被消费：
 
-1. **Claude Code 插件**（主推）：`.claude-plugin/plugin.json` + `marketplace.json` 声明插件；`commands/review.md` 提供 `/branch-review-guard:review` 命令；`agents/bru-*.md` 提供 5 个维度子代理。
+1. **Claude Code 插件**（主推）：`.claude-plugin/plugin.json` + `marketplace.json` 声明插件；`commands/*.md` 提供 `/branch-review-guard:review`、`:diff`、`:distill`、`:rule` 四个命令；`agents/bru-*.md` 提供 7 个只读子代理。
 2. **安装器**（Cursor/Codex 等其它 Agent）：`install/SKILL.md` 按 `manifest.json` 把 `skills/` 拷到目标项目的 `tools/<name>/`（canonical）+ `.cursor/skills/`、`.claude/skills/` 镜像，做**版本感知覆盖 + 备份**。
 3. **裸读**：任何 Agent 直接读 `skills/branch-review-guard/SKILL.md` 执行。
 
@@ -33,9 +33,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - 受影响 skill 的 `skills/<name>/SKILL.md` frontmatter `version:`
 - `skills/branch-review-guard/CHANGELOG.md` 加一节（本仓库的变更史与决策记录都在这里，不在 README）
 
-### "自主执行"指令在三处冗余，改一处要同步三处
+### "自主执行"指令在四处冗余，改一处要同步四处
 
-评审流程"被触发后一气呵成、中途不回问用户"的指令同时写在 `skills/branch-review-guard/SKILL.md`（工作流程节）、`skills/branch-review-guard/prompts/orchestrate-branch-review.md`、`commands/review.md`。0.2.9 修复的 bug 就是三处措辞不一致导致 agent 停在"建立上下文"等用户输入。改任何一处的流程措辞，检查另外两处。
+评审流程"被触发后一气呵成、中途不回问用户"的指令同时写在 `skills/branch-review-guard/SKILL.md`（工作流程节）、`skills/branch-review-guard/prompts/orchestrate-branch-review.md`、`commands/review.md`、`commands/diff.md`。0.2.9 修复的 bug 就是几处措辞不一致导致 agent 停在"建立上下文"等用户输入。改任何一处的流程措辞，检查其余几处。
 
 ### 其它约定
 

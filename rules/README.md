@@ -6,6 +6,7 @@
 
 - `baseline/`：**默认开启**，栈无关的通用规则与降噪校准。
 - `skg-spring/`：**默认关闭**的可选包，针对 SKG Health Global 技术栈（Spring Boot 3 / Dubbo / MyBatis-Plus / MongoDB 自研事务 / Sa-Token / RocketMQ）。同栈团队开启它即可获得机制级深度。
+- `discover-new/`：**默认关闭**的团队沉淀区——`distill`/`rule` 反馈闭环产出、经人工确认后的规则落在这里。与上游作者预置的 `skg-spring/` **解耦**：升级插件时两者互不覆盖，也便于区分"作者预置 vs 本团队实测沉淀"。要生效在 `config.yaml` 手动开。
 - 团队可新增自己的包目录（如 `rules/<your-stack>/`），按同一 schema 写规则。
 
 启用哪些包由 `rules/config.yaml` 控制（安装器会按 `--rules` 写入）。

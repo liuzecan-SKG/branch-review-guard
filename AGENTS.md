@@ -22,7 +22,7 @@
 |---|---|---|
 | 任意 / 通用 | `tools/<name>/SKILL.md`（或直接 `skills/<name>/SKILL.md`） | canonical 正本，最通用 |
 | Cursor | `.cursor/skills/<name>/SKILL.md` + `.cursor/rules/*.mdc` | `.mdc` 是**可选**的自动提醒（来自 `cursor-rules/`） |
-| Claude Code（插件，推荐） | VSCode 扩展：`/plugins` UI 加 marketplace `liuzecan-SKG/branch-review-guard` 并 Install；CLI：`/plugin marketplace add ...` → `/plugin install branch-review-guard@branch-review-guard` | 经 `.claude-plugin/` 一键装全套（3 skill + 7 只读子代理 + `/branch-review-guard:review`、`:distill`、`:rule` 命令），支持启停/版本/复用；安装与更新详见 README |
+| Claude Code（插件，推荐） | VSCode 扩展：`/plugins` UI 加 marketplace `liuzecan-SKG/branch-review-guard` 并 Install；CLI：`/plugin marketplace add ...` → `/plugin install branch-review-guard@branch-review-guard` | 经 `.claude-plugin/` 一键装全套（3 skill + 7 只读子代理 + `/branch-review-guard:review`、`:diff`、`:distill`、`:rule` 命令），支持启停/版本/复用；安装与更新详见 README |
 | Claude Code（手工镜像） | `.claude/skills/<name>/SKILL.md` | 不用插件时的 SKILL.md 镜像 |
 
 - `cursor-rules/*.mdc` 是 **Cursor 专属的可选增强**（auto-attach 提醒），在其它 Agent 上被忽略、不影响功能；不装也能用。

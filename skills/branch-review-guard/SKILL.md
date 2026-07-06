@@ -31,6 +31,7 @@ description: 提测/上线前对整条功能分支（相对主分支的累计变
 
 - **规则包位置**：随 skill 安装在 `rules/`（canonical：`tools/branch-review-guard/rules/`）；启用哪些包由 `rules/config.yaml` 控制。完整 schema 与消费方式见 `rules/README.md`。
 - **baseline 包默认开启**（栈无关的通用规则 + 通用降噪校准）；**栈包可选**（如 `rules/skg-spring/`，默认关闭；同栈团队启用后即可获得机制级深度）。团队也可新增 `rules/<your-stack>/` 自定义包。
+- **`discover-new/` 是团队沉淀区**（默认关闭）：`distill`/`rule` 反哺闭环产出、人工确认后的规则落在这里，与上游作者预置的 `skg-spring/` **解耦**——升级插件时两者互不覆盖，也便于区分"作者预置 vs 我们实测沉淀"。要生效在 `config.yaml` 手动开。
 - **自动识别启用**：`enabled: false` 的栈包若配置了 `auto_enable.project_markers`，加载时按标记探测目标项目（仓库/模块目录名、`pom.xml` 等构建文件的 groupId/artifactId 的确定性字符串匹配），命中则**本次运行自动启用**——不修改 `config.yaml`，报告"已启用规则包"注明"（自动识别启用）"。显式 `enabled: true` 优先；未命中不启用，不做模糊推断。
 - **缺包降级**：未启用某栈包时，对应的机制级深度**自然缺席**——这是预期行为；**通用 checklist 照常全跑**，绝不因"没装某包"而报错或中止。
 - **reviewer 如何消费规则**（详见 `rules/README.md`）：每个维度 reviewer 在跑通用 checklist 的同时，按 `dimension` + `applies_to`（语言/框架/路径）匹配出本维度已启用规则；对 `type: finding` 规则按"识别要点 + 取证方式"产出发现，对 `type: calibration` 规则按"校准动作"做降噪（直接越过 / 降级）。
@@ -47,7 +48,7 @@ description: 提测/上线前对整条功能分支（相对主分支的累计变
 - `/branch-review-guard:review` —— 默认 = `branch`，分支相对 base 的累计变更全维度评审（合并前评审，最常用）
 - `/branch-review-guard branch [--base <分支>] [--dimensions <维度逗号分隔>]`
 - `/branch-review-guard module <模块名>` —— 只深审某个模块（缩小范围、提高深度）
-- `/branch-review-guard diff` —— 仅未提交变更
+- `/branch-review-guard diff` —— 仅未提交变更（插件形态另有独立命令入口 `/branch-review-guard:diff`，等价 `review diff`）
 - `/branch-review-guard recent <N>` —— 最近 N 个提交
 
 `--dimensions` 取值：`bug,design,quality,security,test,api,perf,observability,i18n`（缺省 = 全部）。

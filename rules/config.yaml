@@ -12,6 +12,8 @@ packs:
       project_markers:
         - skg-health-global
         - skg_health_global
+  discover-new:
+    enabled: false       # 团队实测沉淀区：distill/rule 反哺产出、人工确认后落这里（与 skg-spring 解耦）；要生效手动开
 
 # 可选：按规则 id 覆盖默认严重度（不改规则文件本身）
 severity_overrides: {}
