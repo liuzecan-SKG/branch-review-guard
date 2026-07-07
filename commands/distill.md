@@ -16,7 +16,7 @@ argument-hint: "[N（默认 5）] [--pack <目标包，默认 discover-new>]"
 
 1. 调用本插件 `branch-review-guard` skill 的 `prompts/distill-rules.md`，严格按其流程执行：
    - 在**目标项目本地**定位报告目录（优先 `tools/branch-review-guard/reports/`，否则项目根 `branch-review-reports/`）；
-   - 读取最近 N 份报告（按文件名时间戳倒序）；
+   - 读取最近 N 份**评审报告**（按文件名时间戳倒序，**只取 `branch-review-guard-*` 前缀**——排除设计阶段的 `design-panel-*` 报告与精炼设计稿 `*_DESIGN.md`，它们不是 distill 输入源：设计裁决不沉淀为规则，design 与 review 共享 rules 供给是单向的）；
    - **先归"代码实例"（同 file + 同根因，不死磕 file:line）再计数**：同一实例跨报告重复只计 1 次；
    - 聚类重复发现（同维度 + 同根因模式跨 **≥2 个不同实例** → 候选 `finding`；附录"对抗验证记录"被杀/降级同类跨 ≥2 实例 → 候选 `calibration`）；
    - **遗留项分诊**：同一实例在 ≥2 份报告中反复报出、位置基本未变的，**不算漏报**（评审每次都报了、是没改），从 finding 剔除、单列，给两个出口——排期修 known-issue（不生成规则）/ 判定不重要则转 `calibration` 豁免；

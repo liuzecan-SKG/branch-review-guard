@@ -2,6 +2,11 @@
 # 评审核心只加载 enabled: true 的包；enabled: false 但配置了 auto_enable 的包，
 # 会在评审运行时按标记探测目标项目，命中则本次运行自动启用（不修改本文件），
 # 报告"已启用规则包"处注明"（自动识别启用）"。显式 enabled: true 优先，无需探测。
+#
+# 项目本地规则叠加（v0.5.0+）：本文件只管插件自带 rules/ 的 pack 开关；
+# 评审还会 best-effort 叠加读取"被评审项目根 branch-review-rules/"下的规则——
+# 那里的规则独立于此处开关，全量按 applies_to 加载（详见 SKILL.md `## 规则机制`）。
+# 开发侧 skill 也读 branch-review-rules/，故开发与评审共享同一份、标准一致。
 packs:
   baseline:
     enabled: true        # 栈无关通用规则，默认开

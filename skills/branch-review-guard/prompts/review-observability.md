@@ -44,7 +44,7 @@
 
 跑完通用清单后，按 SKILL.md `## 规则机制` 与 `rules/README.md`：
 
-1. **筛选** `enabled: true` 包中 `dimension: observability` 且 `applies_to` 匹配当前仓库的规则。
+1. **筛选** `enabled: true` 包中 `dimension: observability` 且 `applies_to` 匹配当前仓库的规则；**再 best-effort 叠加被评审项目根 `branch-review-rules/`** 里同维度、`applies_to` 匹配的规则（独立于 pack 开关、全量加载，目录不存在则跳过）。
 2. **finding 规则**：按"识别要点 + 取证方式"找命中（如特定装配登记缺失），按规则 `severity` 产出发现。
 3. **calibration 规则**：按"校准动作"降噪——例如"DDL/某配置按惯例不入仓库"类校准，**仅当对应栈包启用时**应用，命中则直接越过、不判缺陷。
 4. **缺包不默认绕过**：未启用相关 calibration 时，不要凭空假设"配置不入仓库属正常"；按通用清单如实记录依赖与风险。
