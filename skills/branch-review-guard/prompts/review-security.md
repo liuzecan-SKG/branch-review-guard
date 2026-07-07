@@ -41,7 +41,7 @@
 
 跑完通用清单后，按 SKILL.md `## 规则机制` 与 `rules/README.md`：
 
-1. **筛选** `enabled: true` 包中 `dimension: security` 且 `applies_to` 匹配当前仓库的规则。
+1. **筛选** `enabled: true` 包中 `dimension: security` 且 `applies_to` 匹配当前仓库的规则；**再 best-effort 叠加被评审项目根 `branch-review-rules/`** 里同维度、`applies_to` 匹配的规则（独立于 pack 开关、全量加载，目录不存在则跳过）。
 2. **finding 规则**：按"识别要点 + 取证方式"找命中（如密钥硬编码、特定 ORM 注入语法），按规则 `severity` 产出发现并取证降噪。
 3. **calibration 规则**：按"校准动作"对特定类别做降噪——例如某些团队会把"运维/内部接口豁免 C 端用户级鉴权"做成 calibration 规则；**仅当对应栈包启用时**才应用，且只对该类绕过，**对外/C 端接口的越权判定不放松**。
 4. **缺包默认从严**：未启用任何降噪栈包时，鉴权/越权按通用清单**从严判定**（不默认豁免任何接口）。

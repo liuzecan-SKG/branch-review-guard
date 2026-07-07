@@ -1,9 +1,10 @@
 # Branch Review Guard
 
-提测/上线前对**整条功能分支**（相对 master 的累计变更）做多维度综合评审、给出**可发布性裁决**的 Claude Code 插件。
+覆盖**设计 + 评审**全链路的 Claude Code 插件：动手写码前用 **design-panel** 多视角出方案、提测/上线前用 **branch-review-guard** 对**整条功能分支**做多维度综合评审、给出**可发布性裁决**。
 
+- 🎨 **方案设计擂台**（design-panel）：写码前并行派 N 个互不可见的设计代理从不同价值取向独立出案，对承重论断做 file:line 级对抗质证，裁判打分嫁接——产出对比表 + 推荐方案 + 精炼设计稿，从"单 agent 一把梭"逼近项目最优解。
 - 🎯 **整分支 · 强制全覆盖**：上万行也分批读完，报告显式声明覆盖率，绝不把没读的当已审。
-- 🧩 **多维并行**：正确性 / 设计 / 安全 / 测试 / 可观测 / i18n + API 兼容 + 接口性能；内置 **7 个只读子代理**（5 维度 + 怀疑者 + 批评家）并行、上下文隔离。
+- 🧩 **多维并行**：正确性 / 设计 / 安全 / 测试 / 可观测 / i18n + API 兼容 + 接口性能；内置 **10 个只读子代理**（评审 7：5 维度+怀疑者+批评家；设计 3：设计代理+怀疑者+裁判）并行、上下文隔离。
 - 🥊 **对抗验证降误报**：每条 P0/P1 经 3 视角怀疑者投票（证据/规则/触发路径），反驳须给 file:line 级反证；阻塞清单基本免人工甄别。收尾另有完整性批评家给覆盖率独立对账。
 - ⚖️ **可发布性裁决**：阻塞 / 有条件通过 / 通过 + Top 风险 + must-fix 清单，直接支撑 go/no-go。
 - 🛡️ **诚实边界**：运行时项（性能 / 并发 / 迁移）只给"需验证项"，**绝不下"已通过"**。
@@ -14,7 +15,7 @@
 
 ### A. Claude Code 原生插件（推荐）
 
-本仓库即一个 **Claude Code 插件 + 单插件 marketplace**（`.claude-plugin/`），一键装全套（3 skill + 7 只读子代理 + `/branch-review-guard:review`、`:diff`、`:distill`、`:rule` 命令），支持启停/版本/部门复用。
+本仓库即一个 **Claude Code 插件 + 单插件 marketplace**（`.claude-plugin/`），一键装全套（4 skill + 10 只读子代理 + `/branch-review-guard:review`、`:diff`、`:distill`、`:rule`、`:design` 命令），支持启停/版本/部门复用。
 
 - **VSCode 扩展**：`/plugins` → **Marketplaces** 标签填 `liuzecan-SKG/branch-review-guard` 点 **Add** → **Plugins** 标签点 **Install**。
 - **CLI（终端 `claude`）**：
@@ -78,10 +79,15 @@
 - `/branch-review-guard:distill [N]`：从本地最近 N 份评审报告**按代码实例**聚类重复发现，生成 `rules/` 候选规则草稿（漏报→finding、误报→calibration），人工确认后提交回本仓库生效——评审越用越准，教训还能反哺开发侧。会把"一直没改的老问题"分诊为**遗留项**单列（不误当漏报固化成规则），交你决定排期修或转豁免。
 - `/branch-review-guard:rule <描述> [--type finding|calibration]`：一句话**手动**快捷加一条规则草稿（绕过 distill 的 ≥2 次阈值、由人担保泛化）；适合把遗留项一键转 calibration，或一眼确信要规则化的强 case。同样走"草稿→人工确认→提交生效"的关卡。
 
+### 方案设计（写码前）
+
+**`/branch-review-guard:design <需求描述>`** —— 动手写码前的多视角设计擂台：并行派 N 个互不可见的设计代理从不同价值取向（最小改动 / 长期可维护 / 风险与回滚 / 性能 / 复用）独立读代码出方案，对每案承重论断派怀疑者做 file:line 级对抗质证，裁判打分产出对比表 + 推荐方案 + 嫁接落选亮点的综合方案，并另出精炼设计稿（认可后移入 `docs/`，后续 `:review` 建立上下文会自动读取，形成"设计 → 评审"闭环）。选项：`--input`（需求文档）、`--module`（缩范围）、`--variants N`、`--quick`/`--thorough`（成本档位）。
+
 ### 典型时机
 
 | 场景 | 命令 |
 |---|---|
+| 动手写码前出方案 | `/branch-review-guard:design <需求>`（多视角设计擂台，产出对比表+推荐+嫁接方案） |
 | 提测/上线前卡点 | `/branch-review-guard:review` |
 | 迭代期边写边查 | `/branch-review-guard:diff`（= `review diff`） |
 | 聚焦某模块深审 | `/branch-review-guard:review module <名>` |
@@ -137,7 +143,8 @@ tools/{branch-review-guard,api-change-guard}
 
 ## 它包含什么
 
-- **branch-review-guard**（主 skill / 编排器）：分批全覆盖、按风险聚焦、L1/L2/L3 护栏、可发布性报告。
+- **branch-review-guard**（评审主 skill / 编排器）：分批全覆盖、按风险聚焦、L1/L2/L3 护栏、可发布性报告。
+- **design-panel**（设计侧 skill / 编排器）：写码前多视角独立成案 + 对抗质证 + 裁判嫁接，产出对比表 + 推荐方案 + 精炼设计稿（移入 `docs/` 供 `:review` 建立上下文）；`requires: ["branch-review-guard"]`，共享 `rules/` 与 `reports/`。
 - **api-change-guard**（依赖）：API/兼容性/影响范围/回归分析。
 - **endpoint-perf-review**（依赖）：单接口性能调用链复盘。
 - **可插拔规则 `rules/`**：核心栈无关；`baseline/`（默认开）+ `skg-spring/`（可选，Spring/Dubbo/MyBatis/Mongo/Sa-Token/RocketMQ 栈）。加自己的栈包：复制 `rules/skg-spring/` 为 `rules/<your-stack>/`，按 `rules/README.md` 写规则、在 `rules/config.yaml` 启用，核心 skill 无需改。
@@ -151,10 +158,11 @@ tools/{branch-review-guard,api-change-guard}
 ```text
 branch-review-guard/
   .claude-plugin/  plugin.json  marketplace.json   # Claude Code 插件层
-  commands/        branch-review-guard.md          # /branch-review-guard
-  agents/          bru-{correctness,design,security,tests,observability}.md
-  skills/          branch-review-guard/  api-change-guard/  endpoint-perf-review/
-  rules/           config.yaml  baseline/  skg-spring/
+  commands/        review  diff  distill  rule  design   .md   # /branch-review-guard:<verb>
+  agents/          bru-{correctness,design,security,tests,observability,skeptic,critic}.md
+                   dsp-{designer,skeptic,judge}.md            # 评审 7 + 设计 3 = 10 只读子代理
+  skills/          branch-review-guard/  design-panel/  api-change-guard/  endpoint-perf-review/
+  rules/           config.yaml  baseline/  skg-spring/  discover-new/
   install/SKILL.md  manifest.json                  # 安装器路径（非 Claude Code Agent）
   cursor-rules/    *.mdc                            # 可选：Cursor 自动提醒
   AGENTS.md  INSTALL.md  README.md  LICENSE

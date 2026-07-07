@@ -8,7 +8,7 @@
   "plugins": [
     {
       "name": "branch-review-guard",
-      "description": "提测/上线前整分支多维度综合代码评审：编排器 + 维度子代理 + api-change-guard/endpoint-perf-review 复用 + 可插拔规则。",
+      "description": "提测/上线前整分支综合代码评审（branch-review-guard）+ 需求方案设计阶段多视角设计对比（design-panel）：评审/设计编排器 + 维度与设计子代理 + api-change-guard/endpoint-perf-review 复用 + 可插拔规则。",
       "source": "./"
     }
   ]

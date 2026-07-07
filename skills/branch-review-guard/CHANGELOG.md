@@ -2,6 +2,33 @@
 
 本文件记录 Branch Review Guard 的演进。
 
+## [0.5.0] - 2026-07-06
+
+v0.5.0 引入**设计侧姊妹技能 design-panel**：与评审侧 branch-review-guard 形成「设计出方案 / 评审守出口」的双子星。需求方案设计阶段并行派 N 个互不可见的设计代理从不同价值取向独立成案 → 对每案承重论断派怀疑者做 file:line 级对抗质证 → 裁判打分产出对比表 + 推荐方案 + 嫁接综合方案。本技能的设计本身即用「设计擂台」模式产出（3 设计代理 + 3 怀疑者 + 1 裁判），过程留证与质证裁决见 `skills/design-panel/DESIGN.md`。
+
+### Added
+
+- **design-panel 编排器**（`skills/design-panel/SKILL.md` + `prompts/` 5 份 + `templates/`）：P0 定标 → P1 建事实底座 → P2 并行独立成案 → P3 对抗质证 → P4 裁判裁决 → P5 诚实边界核查 → P6 产出报告与精炼设计稿。自主一气呵成，唯一回问例外 = 需求「目标行为」本身缺失（终止性单次，**不承诺「不回复则按默认继续」**——纯 Markdown 无超时续跑通道，避免复刻 0.2.9 同型 bug）。
+- **3 个设计侧只读子代理**（`agents/dsp-designer.md` / `dsp-skeptic.md` / `dsp-judge.md`）：单文件参数化视角（沿用 `bru-skeptic` 先例）；frontmatter 严格 `tools: Read, Grep, Glob, Bash`——只读是**机制白名单**而非 prompt 里的一句话（避免 write-enabled 的设计代理顺手改目标项目文件）。
+- **`/branch-review-guard:design` 命令**（`commands/design.md`）：调用 design-panel skill，支持 `--input`/`--module`/`--variants`/`--quick`/`--thorough`。
+- **质证护栏四件套**（`prompts/challenge-claims.md` + `judge-and-graft.md`）：单挑战者替代评审侧 3 票聚合，配「核查动作记录 / 论断外硬伤出口 / 推翻票裁判抽验 / 战绩不进权重」对冲单挑战者的「假维持」腐蚀横向排名。
+- **规模降档（合取护栏 + 一票否决）**（`prompts/clarify-requirement.md`）：预估 ≤5 文件 **且** 无对外契约/存储结构/枚举必填变更 **且** 无跨模块权衡才降为单方案直答；高风险小 diff（契约/迁移/枚举）一票否决降档。
+- **设计→评审闭环**：精炼设计稿 `<slug>_DESIGN.md` 提示用户移入 `docs/`，`:review` 的「建立上下文」自动读取（复用既有机制，零改动）。
+- **项目本地规则叠加（开发-评审标准一致）**（v0.5.0+）：评审时 best-effort 叠加读取**被评审项目根**的 `branch-review-rules/`（与 `branch-review-reports/` 平行），独立于 `config.yaml` pack 开关、直接全量按 `dimension` + `applies_to` 加载（目录不存在则跳过）；开发侧 skill（如项目本地 `skg-health-global-coding-standards` 的机制 H）读**同一份**——单一源、改一处两边同步生效。涉及 `branch-review-guard/SKILL.md`（规则机制节 + 工作流程第4步）、`orchestrate-branch-review.md`（第3/6步）、5 个 `review-*.md`（筛选步）、`consolidate-report.md`（第1章注明）、`rules/config.yaml` 顶部注释。项目主人自放项目特有规则，通常 `.gitignore` 忽略、纯本地，不随插件分发（装了插件但不在自己项目放 `branch-review-rules/` 的人零影响）。
+
+### Changed
+
+- **distill 取样加前缀过滤**（`commands/distill.md` + `prompts/distill-rules.md`）：只取 `branch-review-guard-*`，排除 `design-panel-*` 与 `*_DESIGN.md`——设计裁决不沉淀为规则，design 与 review 共享 rules 供给是**单向**的（rules → design 消费，design 不产 rules）。
+- **降级口径分化**：评审侧「结果一致，只是更慢」；**设计侧「独立性弱化」**（隔离即产品，顺序模式同上下文生成会趋同），两套口径刻意不同、不得混用。
+- **rules 侧 v1 只消费不改 schema**：design-panel 把已启用栈包 `type: finding` 规则作设计约束注入 designer/judge，`dimension` 不匹配时按 `summary` 摘要注入；`applies_phase` 字段及评审侧 phase 过滤**推迟 v2**（牵动 `rules/README.md` 消费逻辑、`branch-review-guard/SKILL.md` 规则机制、各 `prompts/review-*.md`、`commands/rule.md`、`prompts/add-rule.md` 等十余处）。
+- **计数同步**：子代理 7 → **10**（+3 `dsp-*`）、skill 3 → **4**、命令 4 → **5**（+ `:design`）；`plugin.json`/`marketplace.json` 的 description、`AGENTS.md`、`README.md`、`CLAUDE.md` 一并更新。
+- **版本同步**：`skills/design-panel/SKILL.md` + `skills/branch-review-guard/SKILL.md`（后者因新增 `:design` 互链改动）frontmatter + `.claude-plugin/plugin.json` + `manifest.json`（suite + branch-review-guard 条目 + 新增 design-panel 条目 `requires: ["branch-review-guard"]`）→ 0.5.0。
+
+### Notes
+
+- design-panel 依赖 branch-review-guard（共享 `rules/` 与 `reports/` 目录）；`manifest.json` 声明 `requires`，安装器装 design-panel 时连带装 branch-review-guard，reports 目录由后者的 `reports_gitignore` 覆盖、design-panel 条目不重复声明。
+- 设计阶段对抗验证强度低于评审侧（设计裁决由人拍板、误杀不阻塞发布），但配四件套护栏防单挑战者方差腐蚀横向排名；诚实边界由编排器 P5 用固定 checklist 独立核查（非新增 critic 子代理，控成本）。
+
 ## [0.4.0] - 2026-07-05
 
 v0.4.0 收紧 distill 反馈闭环的**计数语义**，补一条"人担保"的手动加规则入口，并新增 `discover-new` 团队沉淀区把反哺规则与上游预置解耦，堵住"把一直没改的老问题误固化成规则"的漏洞。
