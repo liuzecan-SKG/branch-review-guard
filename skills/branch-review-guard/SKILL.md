@@ -1,6 +1,6 @@
 ---
 name: branch-review-guard
-version: 0.4.0
+version: 0.5.0
 description: 提测/上线前对整条功能分支（相对主分支的累计变更）做多维度综合代码评审的编排器。统一调度"正确性/Bug、设计/可维护性、安全、测试、可观测/运维、i18n"等自包含 reviewer，并复用 api-change-guard（API/兼容/影响/回归）与 endpoint-perf-review（性能）作为其中两个维度，强制大 diff 分批全覆盖，按可插拔 rules/ 规则包注入技术栈特有深度，产出单份中文可发布性评审报告。当需要在合并前对一条功能分支做一次性、全面的 code review 时使用。
 ---
 
@@ -30,7 +30,9 @@ description: 提测/上线前对整条功能分支（相对主分支的累计变
 本 skill 的**核心是栈无关的**：所有维度 reviewer 跑的都是通用 checklist（正确性/设计/安全/测试/可观测的一般要点），不绑定任何具体框架。技术栈/项目特有的"坑"与"降噪校准"全部外置到可插拔的 **`rules/` 规则包**，运行时加载、叠加应用。
 
 - **规则包位置**：随 skill 安装在 `rules/`（canonical：`tools/branch-review-guard/rules/`）；启用哪些包由 `rules/config.yaml` 控制。完整 schema 与消费方式见 `rules/README.md`。
+- **项目本地规则叠加**（v0.5.0+）：除插件自带 `rules/` 外，评审时 **best-effort 叠加**读取**被评审项目根**的 `branch-review-rules/`（与 `branch-review-reports/` 平行；项目主人自放、通常 `.gitignore` 忽略、纯本地）。这里的规则**独立于 `config.yaml` 的 pack 开关**——不走 `enabled` 判定，直接全量按 `dimension` + `applies_to` 加载，与插件自带规则同等消费（finding 出发现、calibration 降噪）。读不到（目录不存在）就跳过，不影响评审。开发侧 skill 也读这同一份，故**开发与评审标准一致**、单一源不漂移。
 - **baseline 包默认开启**（栈无关的通用规则 + 通用降噪校准）；**栈包可选**（如 `rules/skg-spring/`，默认关闭；同栈团队启用后即可获得机制级深度）。团队也可新增 `rules/<your-stack>/` 自定义包。
+- **`discover-new/` 是团队沉淀区**（默认关闭）：`distill`/`rule` 反哺闭环产出、人工确认后的规则落在这里，与上游作者预置的 `skg-spring/` **解耦**——升级插件时两者互不覆盖，也便于区分"作者预置 vs 我们实测沉淀"。要生效在 `config.yaml` 手动开。
 - **自动识别启用**：`enabled: false` 的栈包若配置了 `auto_enable.project_markers`，加载时按标记探测目标项目（仓库/模块目录名、`pom.xml` 等构建文件的 groupId/artifactId 的确定性字符串匹配），命中则**本次运行自动启用**——不修改 `config.yaml`，报告"已启用规则包"注明"（自动识别启用）"。显式 `enabled: true` 优先；未命中不启用，不做模糊推断。
 - **缺包降级**：未启用某栈包时，对应的机制级深度**自然缺席**——这是预期行为；**通用 checklist 照常全跑**，绝不因"没装某包"而报错或中止。
 - **reviewer 如何消费规则**（详见 `rules/README.md`）：每个维度 reviewer 在跑通用 checklist 的同时，按 `dimension` + `applies_to`（语言/框架/路径）匹配出本维度已启用规则；对 `type: finding` 规则按"识别要点 + 取证方式"产出发现，对 `type: calibration` 规则按"校准动作"做降噪（直接越过 / 降级）。
@@ -47,7 +49,7 @@ description: 提测/上线前对整条功能分支（相对主分支的累计变
 - `/branch-review-guard:review` —— 默认 = `branch`，分支相对 base 的累计变更全维度评审（合并前评审，最常用）
 - `/branch-review-guard branch [--base <分支>] [--dimensions <维度逗号分隔>]`
 - `/branch-review-guard module <模块名>` —— 只深审某个模块（缩小范围、提高深度）
-- `/branch-review-guard diff` —— 仅未提交变更
+- `/branch-review-guard diff` —— 仅未提交变更（插件形态另有独立命令入口 `/branch-review-guard:diff`，等价 `review diff`）
 - `/branch-review-guard recent <N>` —— 最近 N 个提交
 
 `--dimensions` 取值：`bug,design,quality,security,test,api,perf,observability,i18n`（缺省 = 全部）。
@@ -55,6 +57,7 @@ description: 提测/上线前对整条功能分支（相对主分支的累计变
 `--thorough`（可选，非默认）：首轮评审后对高风险批次（对外契约/事务并发/鉴权/公共代码）追加"新鲜眼"二轮扫描，连续一轮无新发现即停（见 `## 大 Diff 分批，强制全覆盖`）。
 
 配套命令：
+- **`/branch-review-guard:design <需求>`**（设计侧姊妹技能）：需求方案设计阶段多视角设计对比，产出对比表 + 推荐方案 + 嫁接综合方案 + 精炼设计稿；设计稿移入 `docs/` 后本评审的「建立上下文」会自动读取。
 - **`/branch-review-guard:distill [N]`**：从目标项目本地最近 N 份评审报告聚类重复发现，生成 `rules/` 候选规则草稿（见 `## 反馈闭环（distill）`）。
 - **`/branch-review-guard:rule <描述> [--type finding|calibration]`**：把一条已确信的经验**手动**快捷生成一条规则草稿（绕过 distill 的 ≥2 次阈值、由人担保泛化），流程见 `prompts/add-rule.md`。
 
@@ -65,7 +68,7 @@ description: 提测/上线前对整条功能分支（相对主分支的累计变
 1. **确定范围**：解析命令（默认 `branch`）。按 `## 分析模式` 收集 Git 证据；同时取报告元数据 `git rev-parse --short HEAD` 和时间戳。
 2. **建立上下文（自己读，读完立即继续）**：自行读分支目标 / 需求 / 设计文档（仓库根目录与各模块 `docs/` 下的 `*_DESIGN.md`、`*_CONTRACT.md` 等）、`git log` 的 commit message，在报告里用一段话总结"这条分支在做什么、为什么"。**这是评审的前置自查，不是向用户提问的节点**——读完直接进入下一步，**不要停下来等用户**。（无上下文就裸评是反模式，但"无上下文"靠你自己去读文档解决，而非回问用户。）
 3. **自动化先行（L1，见 `## 自动化分级`）**：按项目工具链先尝试编译/构建、lint、测试、依赖漏洞扫描（SCA），把风格与明显问题清掉，让人与 AI 只聚焦逻辑、设计、契约。命令不可用时跳过并在报告"评审范围与方法"中说明。
-4. **加载规则包（见 `## 规则机制`）**：读取 `rules/config.yaml`，确定本次启用的规则包（`enabled: true` 的包 + `auto_enable` 标记命中目标项目而运行时启用的栈包），供各维度 reviewer 按维度匹配应用。
+4. **加载规则包（见 `## 规则机制`）**：读取 `rules/config.yaml`，确定本次启用的规则包（`enabled: true` 的包 + `auto_enable` 标记命中目标项目而运行时启用的栈包）；**再 best-effort 叠加被评审项目根 `branch-review-rules/`**（独立于 pack 开关、全量按 `applies_to` 加载），合并后供各维度 reviewer 按维度匹配应用。
 5. **估规模并分批（见 `## 大 Diff 分批，强制全覆盖`）**：`git diff --stat <base>...HEAD` 拿到变更文件总数与全量清单，按模块/业务域切批。
 6. **分维度评审**：对每批应用 `prompts/` 下对应维度的 reviewer prompt（见 `## 评审维度与复用映射`），每个 reviewer 同时注入已启用 `rules/` 规则。支持子代理则并行，否则顺序。
 7. **复用专项 skill（弹性路径解析）**：API/兼容/影响/回归调用 `api-change-guard`；对识别出的高风险接口调用 `endpoint-perf-review`（解析与降级规则见 `## 评审维度与复用映射`）。

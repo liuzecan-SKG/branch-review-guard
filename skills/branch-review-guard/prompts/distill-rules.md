@@ -10,7 +10,7 @@
 ## 步骤
 
 1. **定位报告目录**（与报告生成的双路径逻辑一致）：优先 `tools/branch-review-guard/reports/`，否则项目根 `branch-review-reports/`。两处都没有报告 → 中止并说明"先跑几次 `/branch-review-guard:review` 积累样本"。
-2. **取样**：按文件名时间戳倒序取最近 N 份（默认 5；不足 N 有几份用几份，样本 <2 份时告知"样本过少，聚类可信度有限"仍可继续）。
+2. **取样**：按文件名时间戳倒序取最近 N 份**评审报告**（文件名 `branch-review-guard-*`；默认 5；不足 N 有几份用几份，样本 <2 份时告知"样本过少，聚类可信度有限"仍可继续）。**排除**设计阶段的 `design-panel-*` 报告与精炼设计稿 `*_DESIGN.md`——它们不是 distill 输入源（设计裁决不沉淀为规则，design 与 review 共享 rules 供给是单向的：rules → design 消费，design 不产 rules）。
 3. **抽取发现**：从每份报告解析结构化发现（`[P*] <维度> — 问题 — file:line — 影响 — 建议`），以及附录"对抗验证记录"中被杀/降级的发现与反证。
 4. **聚类**：
    - **先定"代码实例"，再计数**：把每条发现归到一个**代码实例** = `同一 file + 同一根因语义/代码实体`（行号会因后续改动漂移，**不死磕 file:line**，按"这是不是同一处代码的同一个问题"判断）。**同一代码实例在多份报告里重复出现，只计 1 次**——它不是"反复出现的模式"，而是同一个问题被反复报（见第 5 步遗留项分诊）。
@@ -22,6 +22,7 @@
 6. **去重**：对照插件当前 `rules/` 中已启用包的规则（读各规则的 `summary`/识别要点），已有规则覆盖的模式不再生成草稿；若已有规则但反复漏判/误判，改为输出"建议修订现有规则 `<id>`"的条目。
 7. **生成草稿**：每个候选一个文件，写到 `<报告目录>/../rule-drafts/`（即 `branch-review-reports/rule-drafts/` 或 `tools/branch-review-guard/reports/rule-drafts/`）：
    - 严格按 `rules/README.md` schema：frontmatter（`id: <pack>/<短名>`、`type`、`dimension`、`severity` 建议值、`applies_to`）+ 正文（识别要点 / 取证方式 / 修法；calibration 用校准动作）。
+   - **默认归 `discover-new` 包**（团队沉淀区；`--pack` 未显式指定时一律用它，不要混进上游预置的 `skg-spring`）——`id` 前缀即 `discover-new/<短名>`。
    - frontmatter 一律 **`enabled: false`**（草稿默认不生效，防止被误当正式规则加载）。
    - 文件顶部加注释块：来源报告文件名 + 命中的发现原文摘录（作为证据链，正式入库时删除）。
 8. **输出**（最终回复）：

@@ -1,6 +1,6 @@
 {
   "suite": "branch-review-guard",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "提测/上线前整分支综合代码评审编排器，含可插拔规则机制；自包含、可移植、可 CI 化。",
   "schema": 1,
   "defaults": {
@@ -13,13 +13,14 @@
     "config": "rules/config.yaml",
     "packs": [
       { "name": "baseline", "default_enabled": true, "stack": "agnostic" },
-      { "name": "skg-spring", "default_enabled": false, "stack": "spring-boot,dubbo,mybatis,mongodb,satoken,rocketmq" }
+      { "name": "skg-spring", "default_enabled": false, "stack": "spring-boot,dubbo,mybatis,mongodb,satoken,rocketmq" },
+      { "name": "discover-new", "default_enabled": false, "stack": "team-curated" }
     ]
   },
   "skills": [
     {
       "name": "branch-review-guard",
-      "version": "0.4.0",
+      "version": "0.5.0",
       "role": "primary",
       "source": "skills/branch-review-guard",
       "targets": {
@@ -51,6 +52,17 @@
         "mirrors": [".cursor/skills/endpoint-perf-review", ".claude/skills/endpoint-perf-review"]
       },
       "rule": { "source": "cursor-rules/endpoint-perf-review.mdc", "target": ".cursor/rules/endpoint-perf-review.mdc" }
+    },
+    {
+      "name": "design-panel",
+      "version": "0.5.0",
+      "role": "primary",
+      "source": "skills/design-panel",
+      "targets": {
+        "canonical": "tools/design-panel",
+        "mirrors": [".cursor/skills/design-panel", ".claude/skills/design-panel"]
+      },
+      "requires": ["branch-review-guard"]
     }
   ]
 }

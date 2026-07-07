@@ -22,7 +22,7 @@
    - `dimension`：`correctness|design|security|tests|observability|api|performance`，按描述归类（`--dimension` 优先）。
    - `severity`：finding 给建议默认（`--severity` 优先，缺省按影响估 `P1`/`P2`）；calibration 一律 `-`。
    - `applies_to`：尽量从描述推断语言/框架/路径；推断不出就**留空**（该包启用时一律适用）并注明。
-   - `pack`：`--pack`，默认 `skg-spring`。
+   - `pack`：`--pack`，默认 `discover-new`（团队沉淀区，与上游预置的 `skg-spring` 解耦）。
 2. **对照现有规则去重**：读插件当前 `rules/` 已启用包的规则（各规则 `summary`/识别要点）。
    - 已有规则覆盖同一模式 → **不新建**，改输出"建议修订现有规则 `<id>`：<怎么改>"。
    - 未覆盖 → 进第 3 步建草稿。
