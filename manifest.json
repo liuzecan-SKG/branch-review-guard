@@ -1,6 +1,6 @@
 {
   "suite": "branch-review-guard",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "提测/上线前整分支综合代码评审编排器，含可插拔规则机制；自包含、可移植、可 CI 化。",
   "schema": 1,
   "defaults": {
@@ -55,7 +55,7 @@
     },
     {
       "name": "design-panel",
-      "version": "0.5.0",
+      "version": "0.5.1",
       "role": "primary",
       "source": "skills/design-panel",
       "targets": {
