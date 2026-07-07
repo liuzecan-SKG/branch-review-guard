@@ -1,7 +1,7 @@
 {
   "name": "branch-review-guard",
   "description": "提测/上线前整分支综合代码评审（branch-review-guard）+ 需求方案设计阶段多视角设计对比（design-panel）：评审编排器（5 维度 + 怀疑者 + 批评家）+ 设计擂台（设计代理 + 怀疑者 + 裁判），共 10 个只读子代理 + 复用 api-change-guard/endpoint-perf-review + 可插拔规则包 + distill 反馈闭环；自包含、可移植，给可发布性裁决与设计方案对比。",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "author": {
     "name": "liuzecan-SKG",
     "url": "https://github.com/liuzecan-SKG"
