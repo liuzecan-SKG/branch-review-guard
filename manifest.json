@@ -44,7 +44,7 @@
     },
     {
       "name": "endpoint-perf-review",
-      "version": "0.2.6",
+      "version": "0.4.0",
       "role": "dependency",
       "source": "skills/endpoint-perf-review",
       "targets": {
