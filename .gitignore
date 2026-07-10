@@ -1,10 +1,31 @@
-# 生成的评审报告不入库，仅保留目录占位
+# ── branch-review-guard 插件仓库 .gitignore ──
+# 本仓库本身是插件源（skills/ agents/ commands/ rules/ 等均入库）；
+# 只忽略「运行生成物 + 报告 + 草稿 + 系统/编辑器垃圾」，不碰源码目录。
+
+# 评审/设计报告：目标项目本地产物，不入库（双路径都覆盖）
+branch-review-reports/
 skills/*/reports/*
 !skills/*/reports/.gitkeep
+tools/*/reports/*
+!tools/*/reports/.gitkeep
 
-# 安装器覆盖时产生的备份
-*.bak-*/
+# distill / rule 反馈闭环产出的候选规则草稿（人工确认后才手动落 rules/）
+rule-drafts/
+**/rule-drafts/
+
+# 安装器版本感知覆盖时的备份目录/文件
 *.bak-*
 
-# IDE
+# 操作系统 / 编辑器垃圾
+.DS_Store
+Thumbs.db
+desktop.ini
+*~
+*.swp
+*.swo
 .idea/
+.vscode/
+*.tmp
+
+# Node（若某工具链临时引入，不入库）
+node_modules/
