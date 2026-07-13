@@ -4,8 +4,9 @@
 
 - 🎨 **方案设计擂台**（design-panel）：写码前并行派 N 个互不可见的设计代理从不同价值取向独立出案，对承重论断做 file:line 级对抗质证，裁判打分嫁接——产出对比表 + 推荐方案 + 精炼设计稿，从"单 agent 一把梭"逼近项目最优解。
 - 🎯 **整分支 · 强制全覆盖**：上万行也分批读完，报告显式声明覆盖率，绝不把没读的当已审。
-- 🧩 **多维并行**：正确性 / 设计 / 安全 / 测试 / 可观测 / i18n + API 兼容 + 接口性能；内置 **10 个只读子代理**（评审 7：5 维度+怀疑者+批评家；设计 3：设计代理+怀疑者+裁判）并行、上下文隔离。
-- 🥊 **对抗验证降误报**：每条 P0/P1 经 3 视角怀疑者投票（证据/规则/触发路径），反驳须给 file:line 级反证；阻塞清单基本免人工甄别。收尾另有完整性批评家给覆盖率独立对账。
+- 🧩 **多维并行**：正确性 / 设计 / 安全 / 测试 / 可观测 / i18n / 业务语义 + API 兼容 + 接口性能；内置 **11 个只读子代理**（评审 8：6 维度+怀疑者+批评家；设计 3：设计代理+怀疑者+裁判）并行、上下文隔离。
+- 🥊 **对抗验证降误报 + 捞漏报**：每条 P0/P1 经 3 视角怀疑者投票（证据/规则/触发路径）降误报，反驳须给 file:line 级反证；并对"正例/零发现批次"派第 4 视角假设证伪捞漏报（如"幂等靠 DuplicateKey 但无唯一索引"）；阻塞清单基本免人工甄别。收尾另有完整性批评家给覆盖率独立对账。
+- 🔬 **DLP 加密环境对策**：工作区被透明加密时，内容检索自动切 Read-only、否定结论标注取证方式，杜绝 grep "假零命中"导致的静默漏报。
 - ⚖️ **可发布性裁决**：阻塞 / 有条件通过 / 通过 + Top 风险 + must-fix 清单，直接支撑 go/no-go。
 - 🛡️ **诚实边界**：运行时项（性能 / 并发 / 迁移）只给"需验证项"，**绝不下"已通过"**。
 - 🔌 **可插拔规则**：栈无关核心 + 可开关栈包（`baseline` 默认开、`skg-spring` 默认关但**同栈项目自动识别启用**，标记可配）。
@@ -15,7 +16,7 @@
 
 ### A. Claude Code 原生插件（推荐）
 
-本仓库即一个 **Claude Code 插件 + 单插件 marketplace**（`.claude-plugin/`），一键装全套（4 skill + 10 只读子代理 + `/branch-review-guard:review`、`:diff`、`:distill`、`:rule`、`:design` 命令），支持启停/版本/部门复用。
+本仓库即一个 **Claude Code 插件 + 单插件 marketplace**（`.claude-plugin/`），一键装全套（4 skill + 11 只读子代理 + `/branch-review-guard:review`、`:diff`、`:distill`、`:rule`、`:design` 命令），支持启停/版本/部门复用。
 
 - **VSCode 扩展**：`/plugins` → **Marketplaces** 标签填 `liuzecan-SKG/branch-review-guard` 点 **Add** → **Plugins** 标签点 **Install**。
 - **CLI（终端 `claude`）**：
@@ -67,7 +68,7 @@
 /branch-review-guard:review recent 3                 # 最近 N 个提交
 ```
 
-**选项**：`--base <分支>`（对比基线）、`--dimensions <逗号分隔>`（只跑部分维度）、`--thorough`（高风险批次追加"新鲜眼"二轮扫描，连续一轮无新发现即停）。维度取值：`bug`（正确性）`design`（设计/质量）`security`（安全）`test`（测试）`api`（兼容/影响/回归）`perf`（性能）`observability`（可观测/运维/i18n）。例：
+**选项**：`--base <分支>`（对比基线）、`--dimensions <逗号分隔>`（只跑部分维度）、`--thorough`（高风险批次追加"新鲜眼" loop-until-dry 多轮扫描，连续 2 轮零新发现才停、按 diff 自然收敛、仅 8 轮安全阀）。维度取值：`bug`（正确性）`design`（设计/质量）`security`（安全）`test`（测试）`semantic`（业务语义/不变式）`api`（兼容/影响/回归）`perf`（性能）`observability`（可观测/运维/i18n）。例：
 
 ```text
 /branch-review-guard:review branch --dimensions bug,security
@@ -97,9 +98,9 @@
 ### 它会做什么
 
 1. 建上下文（读 `*_DESIGN.md`/`*_CONTRACT.md`/commit message）→ 自动化先行(L1) → 加载启用的 `rules/` 规则包 → 估规模分批（大 diff 强制全覆盖）。
-2. **插件形态**：按批并行派发 5 个只读维度子代理（`bru-*`），上下文隔离；不支持子代理的环境自动顺序多轮。
+2. **插件形态**：按批并行派发 6 个只读维度子代理（`bru-*`），上下文隔离；不支持子代理的环境自动顺序多轮。
 3. 复用 `api-change-guard`（兼容/影响/回归）与 `endpoint-perf-review`（仅高风险接口性能）。
-4. **对抗性验证**：每条 P0/P1 派 3 个视角的怀疑者（`bru-skeptic`）投票，反驳 ≥2 票否决、1 票降级标争议、0 票标"已对抗验证"；被否项留附录备查。
+4. **对抗性验证**：每条 P0/P1 派 3 个视角的怀疑者（`bru-skeptic`）投票降误报，反驳 ≥2 票否决、1 票降级标争议、0 票标"已对抗验证"；再对"正例/做得好"项与高风险批次"零发现"派第 4 视角"假设证伪"捞漏报；被否/翻案项留附录备查。
 5. 汇总去重、统一定级（P0/P1/P2/Nit），再由完整性批评家（`bru-critic`）对账覆盖率与漏项后定稿，产出**一份中文报告**：可发布性结论 + Top 风险 + 分维度发现 + 阻塞清单（仅收经验证项） + 覆盖率声明。运行时维度只给"需运行时验证项"，不下"已验证通过"。
 
 报告生成在项目内 `branch-review-reports/`（不存在即创建；若项目装有 `tools/branch-review-guard/reports/` 则沿用），命名 `branch-review-guard-<mode>-<shortSha>-<timestamp>.md`。
@@ -159,8 +160,8 @@ tools/{branch-review-guard,api-change-guard}
 branch-review-guard/
   .claude-plugin/  plugin.json  marketplace.json   # Claude Code 插件层
   commands/        review  diff  distill  rule  design   .md   # /branch-review-guard:<verb>
-  agents/          bru-{correctness,design,security,tests,observability,skeptic,critic}.md
-                   dsp-{designer,skeptic,judge}.md            # 评审 7 + 设计 3 = 10 只读子代理
+  agents/          bru-{correctness,design,security,tests,observability,business-invariant,skeptic,critic}.md
+                   dsp-{designer,skeptic,judge}.md            # 评审 8 + 设计 3 = 11 只读子代理
   skills/          branch-review-guard/  design-panel/  api-change-guard/  endpoint-perf-review/
   rules/           config.yaml  baseline/  skg-spring/  discover-new/
   install/SKILL.md  manifest.json                  # 安装器路径（非 Claude Code Agent）

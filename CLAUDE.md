@@ -10,7 +10,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 内容只在 `skills/` + `rules/` 里编写一次（canonical 源），以三种形态被消费：
 
-1. **Claude Code 插件**（主推）：`.claude-plugin/plugin.json` + `marketplace.json` 声明插件；`commands/*.md` 提供 `/branch-review-guard:review`、`:diff`、`:distill`、`:rule` 四个命令；`agents/bru-*.md` 提供 7 个只读子代理。
+1. **Claude Code 插件**（主推）：`.claude-plugin/plugin.json` + `marketplace.json` 声明插件；`commands/*.md` 提供 `/branch-review-guard:review`、`:diff`、`:distill`、`:rule`、`:design` 命令；`agents/bru-*.md` + `agents/dsp-*.md` 提供 11 个只读子代理（评审侧 8 + 设计侧 3）。
 2. **安装器**（Cursor/Codex 等其它 Agent）：`install/SKILL.md` 按 `manifest.json` 把 `skills/` 拷到目标项目的 `tools/<name>/`（canonical）+ `.cursor/skills/`、`.claude/skills/` 镜像，做**版本感知覆盖 + 备份**。
 3. **裸读**：任何 Agent 直接读 `skills/branch-review-guard/SKILL.md` 执行。
 
@@ -19,7 +19,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `skills/branch-review-guard/` — **评审编排器**（主 skill）：确定范围 → 建上下文 → 自动化先行 → 加载规则包 → 大 diff 分批（强制全覆盖）→ 分维度评审 → 汇总 → 单份中文可发布性报告。维度 prompt 在其 `prompts/`，报告模板在 `templates/`。
 - `skills/design-panel/` — **设计编排器**（设计侧姊妹 skill）：需求方案设计阶段并行派 N 个互不可见的设计代理独立成案 → 对每案承重论断派怀疑者对抗质证 → 裁判打分嫁接，产出对比表 + 推荐方案 + 精炼设计稿（移入 `docs/` 供 `:review` 建立上下文）。`requires: ["branch-review-guard"]`，共享 `rules/` 与 `reports/` 目录；自身设计文档 `DESIGN.md` 记录用「设计擂台」模式产出的过程留证。
 - `skills/api-change-guard/`、`skills/endpoint-perf-review/` — 被编排器复用的两个依赖 skill（API 兼容维度、性能维度）。
-- `agents/bru-*.md` + `agents/dsp-*.md` — 插件形态下的 10 个只读子代理：**评审侧 7 个** `bru-*`（5 个维度评审 correctness / design / security / tests / observability，按批并行派发 + 对抗验证怀疑者 `bru-skeptic`，每条 P0/P1 × 3 视角 + 完整性批评家 `bru-critic`，定稿前 1 个）；**设计侧 3 个** `dsp-*`（`dsp-designer` 设计代理按视角并行 N 实例 + `dsp-skeptic` 每方案 1 个质证 + `dsp-judge` 裁判定稿前 1 个）。**所有子代理的只读靠 frontmatter `tools: Read, Grep, Glob, Bash` 白名单保证**（不是 prompt 里的一句话）；不支持子代理的环境自动退化为顺序执行。
+- `agents/bru-*.md` + `agents/dsp-*.md` — 插件形态下的 11 个只读子代理：**评审侧 8 个** `bru-*`（6 个维度评审 correctness / design / security / tests / observability / business-invariant，按批并行派发 + 对抗验证怀疑者 `bru-skeptic`——每条 P0/P1 × 3 视角降误报 + 对"正例/零发现"× 第 4 视角假设证伪捞漏报 + 完整性批评家 `bru-critic`，定稿前 1 个）；**设计侧 3 个** `dsp-*`（`dsp-designer` 设计代理按视角并行 N 实例 + `dsp-skeptic` 每方案 1 个质证 + `dsp-judge` 裁判定稿前 1 个）。**所有子代理的只读靠 frontmatter `tools: Read, Grep, Glob, Bash` 白名单保证**（不是 prompt 里的一句话）；不支持子代理的环境自动退化为顺序执行。
 - `rules/` — **可插拔规则包**：核心 skill 栈无关，栈特有的"坑"与降噪校准全部外置到这里。`baseline/` 默认开，`skg-spring/` 默认关（本仓库的 `rules/config.yaml` 只是随包分发的默认值；安装器按 `--rules` 写目标项目的 config）。规则文件 schema（frontmatter：`id`/`type: finding|calibration`/`dimension`/`severity`/`applies_to`）见 `rules/README.md`。
 - `cursor-rules/*.mdc` — Cursor 专属的可选 auto-attach 提醒，其它形态忽略。
 
@@ -33,7 +33,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `manifest.json` 的 `suite.version`
 - 受影响 skill 的 `skills/<name>/SKILL.md` frontmatter `version:`
 - `skills/branch-review-guard/CHANGELOG.md` 加一节（本仓库的变更史与决策记录都在这里，不在 README）
-- **计数同步**（增删 skill / agent / 命令时）：`plugin.json` 的 `description`、`AGENTS.md`（套件内容节 + Claude Code 插件行）、`README.md`（亮点 + 仓库结构）、`marketplace.json` 的 description 里写死的 skill 数 / 子代理数 / 命令数（当前「4 skill + 10 只读子代理 + 5 命令」）要一并更新——0.3.0、0.5.0 都改过这些计数，脱节会让描述与实际不符。
+- **计数同步**（增删 skill / agent / 命令时）：`plugin.json` 的 `description`、`AGENTS.md`（套件内容节 + Claude Code 插件行）、`README.md`（亮点 + 仓库结构）、`marketplace.json` 的 description 里写死的 skill 数 / 子代理数 / 命令数（当前「4 skill + 11 只读子代理 + 5 命令」）要一并更新——0.3.0、0.5.0 都改过这些计数，脱节会让描述与实际不符。
 
 ### "自主执行"指令多处冗余，改一处要同步同侧其余几处
 
