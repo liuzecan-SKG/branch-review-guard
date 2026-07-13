@@ -26,7 +26,7 @@
    - 安全 → `review-security.md`
    - 测试 → `review-tests.md`
    - 可观测/运维/i18n → `review-observability.md`
-   - **业务语义/不变式 → `review-business-invariant.md`**（捞"代码特征抓不到"的漏报：哨兵值误判/孪生差分/不变式多路径绕过/孤儿/枚举 oracle；产出含"正例·待证伪"声明，对接第 8 步第 4 视角）
+   - **业务语义/不变式 → `review-business-invariant.md`**（捞"代码特征抓不到"的漏报：哨兵值误判/孪生差分/不变式多路径绕过/孤儿/枚举 oracle/值集一致性；产出含"正例·待证伪"声明，对接第 8 步第 4 视角）
    - **支持子代理**：每批（或每"批×维度"）派一个子代理并行；给子代理传"该批文件清单 + 对应 prompt 路径 + 已启用规则包要点 + DLP 是否加密"，要求它只返回结构化发现列表。
      - 作为 **Claude Code 插件**运行时，优先派发本插件预置的命名维度子代理（各自上下文隔离、只读、已内置对应清单与规则加载约定）：正确性→`bru-correctness`、设计/质量→`bru-design`、安全→`bru-security`、测试→`bru-tests`、可观测/运维/i18n→`bru-observability`、业务语义/不变式→`bru-business-invariant`。
    - **不支持子代理**：顺序逐批逐维度执行同样的 prompt。
