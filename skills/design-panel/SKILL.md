@@ -1,6 +1,6 @@
 ---
 name: design-panel
-version: 0.5.1
+version: 0.5.2
 description: 需求方案设计阶段的多视角设计编排器（branch-review-guard 的设计侧姊妹技能）。并行派 N 个互相隔离的设计子代理从不同价值取向独立读代码成案，对每案的承重论断派怀疑者做 file:line 级对抗质证，裁判打分产出「对比表 + 推荐方案 + 嫁接落选亮点的综合方案」单份中文设计文档，并另出精炼设计稿供后续 :review 评审建立上下文时自动读取。当需要在动手写码前对一条需求做一次性、多视角的方案设计对比时使用。
 ---
 
@@ -30,7 +30,7 @@ description: 需求方案设计阶段的多视角设计编排器（branch-review
 本 skill **栈无关核心**：设计视角的价值来自价值取向差异，不绑定框架。技术栈/项目特有的「坑」与「降噪校准」复用 `branch-review-guard` 的可插拔 **`rules/` 规则包**——把已启用栈包中 `type: finding` 的规则作为「设计约束」注入 designer 与 judge。
 
 - **规则包位置**：随 `branch-review-guard` 安装（canonical：`tools/branch-review-guard/rules/`）；启用哪些包由 `rules/config.yaml` 控制。schema 与消费方式见 `rules/README.md`。
-- **项目本地规则叠加**（v0.5.0+，与评审侧同源）：除插件自带 `rules/` 外，designer/judge **best-effort 叠加**读取**被设计项目根**的 `branch-review-rules/`（项目主人自放、通常 `.gitignore` 忽略、纯本地）。这里的规则独立于 `config.yaml` pack 开关，直接全量按 `dimension` + `applies_to` 加载作设计约束；读不到（目录不存在）就跳过。设计侧与评审侧读同一份本地规则，**开发-评审标准一致、单一源不漂移**。
+- **项目本地规则叠加**（v0.5.0+，与评审侧同源）：除插件自带 `rules/` 外，designer/judge 叠加读取**被设计项目根**的 `branch-review-rules/`（项目主人自放、纯本地不入库，建议写 `.git/info/exclude`）。**读取契约与评审侧一致（v0.7.0 钉死）：只读该目录根下的 `.md`、不递归子目录**。这里的规则独立于 `config.yaml` pack 开关，直接全量按 `dimension` + `applies_to` 加载作设计约束；读不到（目录不存在）就跳过。设计侧与评审侧读同一份本地规则，**开发-评审标准一致、单一源不漂移**。
 - **v1 只消费，不改 schema**：designer/judge 读取已启用规则包；`dimension` 不匹配设计场景时按规则的 `summary` 字段摘要注入。
 - **`applies_phase` 字段推迟到 v2**：v1 不引入「规则适用于 design 还是 review 阶段」的字段，也不在评审侧加 phase 过滤（那会牵动 `rules/README.md` 消费逻辑、`branch-review-guard/SKILL.md` 规则机制、各 `prompts/review-*.md`、`commands/rule.md`、`prompts/add-rule.md` 等十余处，不在 v1 范围）。design 与 review 共享 rules 供给是**单向**的：rules → design 消费；**design 不向 rules 产出**（设计裁决不沉淀为规则，规则只来自评审侧 distill/rule）。
 

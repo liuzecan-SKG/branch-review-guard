@@ -41,7 +41,7 @@ model: opus
 
 ## 加载并应用规则
 
-按已启用 `rules/` 包筛选 `dimension: security` 规则与相关 `type: calibration` 校准。calibration 优先级高于 finding 默认定级。缺包只跑通用清单，**不要凭空假设运维接口豁免**（豁免须由启用的校准规则明示）。
+按已启用 `rules/` 包筛选 `dimension: security` 规则与相关 `type: calibration` 校准。calibration 优先级高于 finding 默认定级。缺包只跑通用清单，**不要凭空假设运维接口豁免**（豁免须由启用的校准规则明示）。规则命中的发现条目末尾标「触发规则: <pack>/<id>」；被压掉/降级的记「规则降噪: <id> — <一句话>」（固定格式，供战绩统计）。
 
 ## 取证（守 DLP 与诚实边界）
 

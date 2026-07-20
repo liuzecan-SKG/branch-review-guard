@@ -42,7 +42,7 @@ model: opus
 
 ## 加载并应用规则
 
-按已启用的 `rules/` 包筛选 `dimension: correctness`（或相应维度）的规则：finding 规则按"识别要点 + 取证方式"找命中并按其 `severity` 定级；calibration 规则按校准动作降噪。缺包只跑通用清单，不报错。
+按已启用的 `rules/` 包筛选 `dimension: correctness`（或相应维度）的规则：finding 规则按"识别要点 + 取证方式"找命中并按其 `severity` 定级；calibration 规则按校准动作降噪。缺包只跑通用清单，不报错。规则命中产出的发现，条目末尾标「触发规则: <pack>/<id>」；被 calibration 压掉/降级的记「规则降噪: <id> — <一句话>」（固定格式，供战绩统计）。
 
 ## 取证（守 DLP 与诚实边界）
 

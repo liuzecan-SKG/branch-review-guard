@@ -1,6 +1,6 @@
 ---
 name: branch-review-guard
-version: 0.6.0
+version: 0.7.0
 description: 提测/上线前对整条功能分支（相对主分支的累计变更）做多维度综合代码评审的编排器。统一调度"正确性/Bug、设计/可维护性、安全、测试、可观测/运维、i18n、业务语义/不变式"等自包含 reviewer，并复用 api-change-guard（API/兼容/影响/回归）与 endpoint-perf-review（性能）作为其中两个维度，强制大 diff 分批全覆盖，按可插拔 rules/ 规则包注入技术栈特有深度，产出单份中文可发布性评审报告。内置 DLP 透明加密环境对策与对抗层反向证伪（捞漏报）。当需要在合并前对一条功能分支做一次性、全面的 code review 时使用。
 ---
 
@@ -30,9 +30,9 @@ description: 提测/上线前对整条功能分支（相对主分支的累计变
 本 skill 的**核心是栈无关的**：所有维度 reviewer 跑的都是通用 checklist（正确性/设计/安全/测试/可观测的一般要点），不绑定任何具体框架。技术栈/项目特有的"坑"与"降噪校准"全部外置到可插拔的 **`rules/` 规则包**，运行时加载、叠加应用。
 
 - **规则包位置**：随 skill 安装在 `rules/`（canonical：`tools/branch-review-guard/rules/`）；启用哪些包由 `rules/config.yaml` 控制。完整 schema 与消费方式见 `rules/README.md`。
-- **项目本地规则叠加**（v0.5.0+）：除插件自带 `rules/` 外，评审时 **best-effort 叠加**读取**被评审项目根**的 `branch-review-rules/`（与 `branch-review-reports/` 平行；项目主人自放、通常 `.gitignore` 忽略、纯本地）。这里的规则**独立于 `config.yaml` 的 pack 开关**——不走 `enabled` 判定，直接全量按 `dimension` + `applies_to` 加载，与插件自带规则同等消费（finding 出发现、calibration 降噪）。读不到（目录不存在）就跳过，不影响评审。开发侧 skill 也读这同一份，故**开发与评审标准一致**、单一源不漂移。
+- **项目本地规则叠加**（v0.5.0+）：除插件自带 `rules/` 外，评审时叠加读取**被评审项目根**的 `branch-review-rules/`（与 `branch-review-reports/` 平行；项目主人自放、纯本地不入库，建议写 `.git/info/exclude`）。**读取契约（v0.7.0 钉死）：只读该目录根下的 `*.md`（每文件一条规则），不递归子目录**——子目录里的规则视为不存在（有整批静默失效的实证前科），规则一律扁平放根、`pack: local`、`id: local/<短名>`。这里的规则**独立于 `config.yaml` 的 pack 开关**——不走 `enabled` 判定（`enabled` 在此是死字段），直接全量按 `dimension` + `applies_to` 加载，与插件自带规则同等消费（finding 出发现、calibration 降噪）。目录不存在不影响评审，但**申报是无条件的**：报告"评审范围与方法"必须写"项目本地规则 N 条"，N=0 时写明目录状态（不存在 / 空 / 读取失败），禁止静默略过。开发侧 skill 也读这同一份，故**开发与评审标准一致**、单一源不漂移。生命周期与晋升规则见 `rules/README.md`「规则生命周期与目录规范」。
 - **baseline 包默认开启**（栈无关的通用规则 + 通用降噪校准）；**栈包可选**（如 `rules/skg-spring/`，默认关闭；同栈团队启用后即可获得机制级深度）。团队也可新增 `rules/<your-stack>/` 自定义包。
-- **`discover-new/` 是团队沉淀区**（默认关闭）：`distill`/`rule` 反哺闭环产出、人工确认后的规则落在这里，与上游作者预置的 `skg-spring/` **解耦**——升级插件时两者互不覆盖，也便于区分"作者预置 vs 我们实测沉淀"。要生效在 `config.yaml` 手动开。
+- **`discover-new/` 是团队沉淀区**（默认关闭）：**只收**在项目本地 `branch-review-rules/` 服役出战绩（命中 ≥3 且存活率 ≥2/3）后**晋升**的规则——`distill`/`rule` 草稿经确认先落项目本地试用，不直接进这里（两段式落位，见 `rules/README.md`「规则生命周期与目录规范」）；**本包空是常态、不是欠账**。与上游作者预置的 `skg-spring/` **解耦**——升级插件时两者互不覆盖，也便于区分"作者预置 vs 我们实测沉淀"。要生效在 `config.yaml` 手动开。
 - **自动识别启用**：`enabled: false` 的栈包若配置了 `auto_enable.project_markers`，加载时按标记探测目标项目（仓库/模块目录名、`pom.xml` 等构建文件的 groupId/artifactId 的确定性字符串匹配），命中则**本次运行自动启用**——不修改 `config.yaml`，报告"已启用规则包"注明"（自动识别启用）"。显式 `enabled: true` 优先；未命中不启用，不做模糊推断。
 - **缺包降级**：未启用某栈包时，对应的机制级深度**自然缺席**——这是预期行为；**通用 checklist 照常全跑**，绝不因"没装某包"而报错或中止。
 - **reviewer 如何消费规则**（详见 `rules/README.md`）：每个维度 reviewer 在跑通用 checklist 的同时，按 `dimension` + `applies_to`（语言/框架/路径）匹配出本维度已启用规则；对 `type: finding` 规则按"识别要点 + 取证方式"产出发现，对 `type: calibration` 规则按"校准动作"做降噪（直接越过 / 降级）。
@@ -70,7 +70,7 @@ description: 提测/上线前对整条功能分支（相对主分支的累计变
 1. **确定范围**：解析命令（默认 `branch`）。按 `## 分析模式` 收集 Git 证据；同时取报告元数据 `git rev-parse --short HEAD` 和时间戳。**顺手做 DLP 明文自检**（取变更清单里一个源码文件用 Read 读，判定是否加密环境，见 `## DLP 透明加密环境对策`），把结论带入后续所有维度的取证方式。
 2. **建立上下文（自己读，读完立即继续）**：自行读分支目标 / 需求 / 设计文档（仓库根目录与各模块 `docs/` 下的 `*_DESIGN.md`、`*_CONTRACT.md` 等）、`git log` 的 commit message，在报告里用一段话总结"这条分支在做什么、为什么"。**这是评审的前置自查，不是向用户提问的节点**——读完直接进入下一步，**不要停下来等用户**。（无上下文就裸评是反模式，但"无上下文"靠你自己去读文档解决，而非回问用户。）
 3. **自动化先行（L1，见 `## 自动化分级`）**：按项目工具链先尝试编译/构建、lint、测试、依赖漏洞扫描（SCA），把风格与明显问题清掉，让人与 AI 只聚焦逻辑、设计、契约。命令不可用时跳过并在报告"评审范围与方法"中说明。
-4. **加载规则包（见 `## 规则机制`）**：读取 `rules/config.yaml`，确定本次启用的规则包（`enabled: true` 的包 + `auto_enable` 标记命中目标项目而运行时启用的栈包）；**再 best-effort 叠加被评审项目根 `branch-review-rules/`**（独立于 pack 开关、全量按 `applies_to` 加载），合并后供各维度 reviewer 按维度匹配应用。
+4. **加载规则包（见 `## 规则机制`）**：读取 `rules/config.yaml`，确定本次启用的规则包（`enabled: true` 的包 + `auto_enable` 标记命中目标项目而运行时启用的栈包）；**再叠加被评审项目根 `branch-review-rules/`**（只读根目录 `.md`、不递归子目录；独立于 pack 开关、全量按 `applies_to` 加载；条数无条件申报，0 条写明目录状态），合并后供各维度 reviewer 按维度匹配应用。
 5. **估规模并分批（见 `## 大 Diff 分批，强制全覆盖`）**：`git diff --stat <base>...HEAD` 拿到变更文件总数与全量清单，按模块/业务域切批。
 6. **分维度评审**：对每批应用 `prompts/` 下对应维度的 reviewer prompt（见 `## 评审维度与复用映射`），每个 reviewer 同时注入已启用 `rules/` 规则。支持子代理则并行，否则顺序。
 7. **复用专项 skill（弹性路径解析）**：API/兼容/影响/回归调用 `api-change-guard`；对识别出的高风险接口调用 `endpoint-perf-review`（解析与降级规则见 `## 评审维度与复用映射`）。
@@ -314,13 +314,20 @@ git log HEAD~<N>..HEAD --oneline
 
 ## 反馈闭环（distill + 手动 rule）
 
-评审的历史产出可反哺规则包与开发侧，两条入口共享同一套落地关卡（草稿落报告目录旁 `rule-drafts/`、`enabled: false`、**人工确认后**提交插件仓库 `rules/<pack>/` 才生效，**绝不自动写规则包**）：
+评审的历史产出可反哺规则与开发侧，两条入口共享同一套落地关卡（草稿落报告目录旁 `rule-drafts/`、`enabled: false`、**绝不自动写规则**）。落位走**两段式**（详见 `rules/README.md`「规则生命周期与目录规范」）：
+
+- **首落位（个人家）**：草稿经人工确认后移入**目标项目根 `branch-review-rules/`**（改 `pack: local`、`id: local/<短名>`、扁平放根）——放入即生效、移出即撤销，只影响本项目。审核用 triage 一页清单：机械判断（schema/去重/过拟合/误杀模拟 file:line 反例）由 agent 预审代劳，人只答"值不值得进我的试用区"，落位/归档/记 `branch-review-reports/LEDGER.md` 台账由 agent 代劳。
+- **晋升（团队家）**：本地服役**命中 ≥3 且存活率 ≥2/3** 才晋升插件仓库 `rules/discover-new/`，四步缺一不生效：改 pack/id 为 `discover-new` → commit 插件仓库 → `config.yaml` 置 `enabled` → 发版。样本不足不晋升，允许"我确信"人工 override。
+- **触发节奏（按量不按时）**：每积累 5 份新报告、或单次评审对抗验证否决 ≥3 条，跑一次 distill。水位线状态记 `rule-drafts/.distill-state`（时间 + 已消化最新报告名，**勿用 mtime 当代理量**——会被手动 `/rule` 草稿污染）；review/diff 收尾按 `consolidate-report.md` 盘点并在报告尾提示，默认只提醒不自动跑。
+- **战绩闭环（装尺子）**：报告发现标「触发规则: <pack>/<id>」、对抗验证否决标「规则误报: <pack>/<id>」、被压掉的标「规则降噪: <id>」；distill 顺带统计**命中÷存活**回写目标项目 `branch-review-reports/FEEDBACK.md`（**落报告侧，绝不落规则目录**——非规则文件混入加载源有被误计成规则的前科），命中机会 <3 标"样本不足"。晋升/退役以战绩为准，审错一条 2-3 次评审内会被战绩揪出。
+
+两条入口：
 
 - **`/branch-review-guard:distill [N]`**（数据驱动，流程见 `prompts/distill-rules.md`）：读**目标项目本地**最近 N 份报告聚类重复发现。**先把每条发现归到"代码实例"（同 file + 同根因，不死磕 file:line）再计数，同一实例跨报告只计 1 次**——漏报模式（同维度同根因跨 **≥2 个不同实例**）→ 候选 `finding`；对抗验证附录中反复被否决的模式 → 候选 `calibration`。
   - **遗留项分诊**：同一实例在 ≥2 份报告中反复报出、位置基本未变的，**不是漏报**（评审每次都报了、是开发一直没改），从 finding 剔除、单列为「反复报出但未修复的遗留项」，给两个出口——认可是真问题只是没排期 → known-issue 不生成规则；判定不成立/不重要 → 转 `calibration` 让评审器以后豁免。**避免把"一直没改的老问题"误固化成 finding**。
 - **`/branch-review-guard:rule <描述> [--type ...]`**（人担保，流程见 `prompts/add-rule.md`）：把一条已确信的经验**手动**快捷生成规则草稿，**绕过 distill 的 ≥2 次阈值**（泛化由录入人负责）。典型用途：把 distill 遗留项一句话转 calibration，或一眼确信要规则化的强 case。
 
-开发侧 skill / CLAUDE.md 引用同一套 `rules/` 的"修法"节，即可把评审教训前置为写码禁区。
+开发侧 skill / CLAUDE.md 引用同一套规则（插件 `rules/` + 项目本地 `branch-review-rules/`）的"修法"节，即可把评审教训前置为写码禁区——开发与评审共享单一规则源，标准一致。
 
 ## 误判记录
 

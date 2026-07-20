@@ -66,4 +66,23 @@ summary: 一句话：这条规则在查/校准什么
 
 ## 反馈闭环（可选，配合 ROADMAP #4）
 
-被开发反复标"忽略/误报"的规则，建议在其 frontmatter 调低 `severity` 或置 `enabled: false`，或新增一条 `type: calibration` 规则把该类绕过。把处置记录留在 `rules/<pack>/FEEDBACK.md`。
+被开发反复标"忽略/误报"的规则，建议在其 frontmatter 调低 `severity` 或置 `enabled: false`，或新增一条 `type: calibration` 规则把该类绕过。处置记录与战绩落在**目标项目报告侧** `branch-review-reports/FEEDBACK.md` / `LEDGER.md`——**绝不放进规则目录**（非规则文件混入加载源会被误计成规则，有实证前科）。
+
+## 规则生命周期与目录规范（所有项目通用）
+
+规则只有**两个家**，其余位置明确为非规则源：
+
+| 位置 | 职责 |
+| --- | --- |
+| 目标项目根 `branch-review-rules/`（个人家） | **一切新规则的唯一首落位**。规则 `.md` **扁平放目录根、不建子目录**（评审侧只读根目录、不递归）；`pack: local`、`id: local/<短名>`；放入即生效、移出即撤销（此处 `enabled` 是死字段，不走开关判定）。纯本地不入库（建议写 `.git/info/exclude`）。开发侧写码 skill 与评审侧读**同一份**，标准一致 |
+| 插件仓库 `rules/`（团队家） | `baseline/`、`skg-spring/` 是作者预置；`discover-new/` **只收**在个人家服役出战绩后**晋升**的规则——**空是常态不是欠账** |
+| 用户/项目 CLAUDE.md、memory | 非规则源。写码预防态红线、构建/架构事实、决策存档；新增**检测类**条目一律只进 rules |
+
+**目录纪律**：`branch-review-rules/` 里只放规则 `.md`——README、台账（LEDGER）、战绩（FEEDBACK）一律落项目的 `branch-review-reports/`，防被误计成规则。
+
+**两段式落位**：
+
+1. **首落位（个人家）**：`distill`/`rule` 草稿经审核确认后，一律先落目标项目 `branch-review-rules/`——只影响自己、撤销 = 移出一个文件。审核时机械判断（schema 合规 / 与现有规则去重 / 过拟合红线 / 误杀模拟 file:line 反例）由 agent 预审代劳，人只答一个价值判断："值不值得进我的试用区"。
+2. **晋升（团队家）**：本地服役**命中 ≥3 且存活率 ≥2/3**（命中=报告标「触发规则」，存活=未被对抗验证判误报）才晋升，四步缺一不生效：改 id/pack 为 `discover-new` → commit 插件仓库 → `config.yaml` 置 `enabled` → 发版。样本不足不晋升；允许"我确信"人工 override。
+
+**触发节奏（按量不按时）**：每积累 5 份新评审报告、或单次评审对抗验证否决 ≥3 条（误报堆积信号），跑一次 `distill`。distill 只产 `enabled: false` 草稿，落位永远过人工关卡。

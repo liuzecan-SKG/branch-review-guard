@@ -43,7 +43,7 @@ model: opus
 
 ## 加载并应用规则
 
-按已启用 `rules/` 包筛选 `dimension: observability` 规则与相关 `type: calibration`。calibration **仅当对应栈包启用时**应用；**未启用相关 calibration 时不要凭空假设"配置不入仓库属正常"**，按通用清单如实记录依赖与风险。
+按已启用 `rules/` 包筛选 `dimension: observability` 规则与相关 `type: calibration`。calibration **仅当对应栈包启用时**应用；**未启用相关 calibration 时不要凭空假设"配置不入仓库属正常"**，按通用清单如实记录依赖与风险。规则命中的发现条目末尾标「触发规则: <pack>/<id>」；被压掉/降级的记「规则降噪: <id> — <一句话>」（固定格式，供战绩统计）。
 
 ## 取证（守 DLP 与诚实边界）
 

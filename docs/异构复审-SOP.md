@@ -117,7 +117,7 @@
 ```
 
 **证伪结果的两个去处**：
-1. **误报模式沉淀成 calibration 规则**：反复出现的误报类型（如上面三类）走 `distill`/`rule` 闭环，落 `rules/` 或项目本地 `branch-review-rules/`，让插件**下次少犯同样的误报**——这比改 prompt 更根治。本套件已把这三类通用误报固化为 `baseline/` 的 `calibration-mechanism-mismatch-not-bypass` / `calibration-orthogonal-not-contradiction` / `calibration-security-gate-not-degradable`（默认开）。
+1. **误报模式沉淀成 calibration 规则**：反复出现的误报类型（如上面三类）走 `distill`/`rule` 闭环，按两段式落位——**先落项目本地 `branch-review-rules/` 试用（首落位，放入即生效），服役出战绩（命中 ≥3 且存活率 ≥2/3）再晋升插件仓库 `rules/discover-new/`**——让插件**下次少犯同样的误报**，这比改 prompt 更根治。本套件已把这三类通用误报固化为 `baseline/` 的 `calibration-mechanism-mismatch-not-bypass` / `calibration-orthogonal-not-contradiction` / `calibration-security-gate-not-degradable`（默认开）。
 2. **修正报告定级**：REFUTED 的从阻塞清单剔除、WEAKENED 的降级，得到一份精度更高的最终清单。
 
 > ⚠️ 边界：精度复核只查"报告已标的对不对"（降误报），**不查"报告没标的有没有漏"**（那是召回，靠前面五步）。别把"清单验真"当成"评审无漏"——两轮全 CONFIRMED 也可能有真问题两轮都没想到去质疑。且它仍是弱独立（同模型可能有共同盲区，有些误报两轮都识不破），关键分支该配人工复核。
@@ -126,7 +126,7 @@
 
 换模型治不了"不知道业务道理"。真正的解法是把团队已知的业务不变式**沉淀成清单**喂给评审：
 
-- 位置：被评审项目根的 `branch-review-rules/`（插件会 best-effort 全量叠加，独立于规则包开关）。
+- 位置：被评审项目根的 `branch-review-rules/`（插件全量叠加，独立于规则包开关；**扁平放目录根的 `.md`、不建子目录**——子目录不被读取）。
 - 内容：单设备单激活、登出墓碑哨兵语义、状态机单向、某字段的 null 是哨兵不是脏数据……每条写清"不变式是什么 + 哪些路径必须守 + 违反的后果"。
 - 效果：业务语义维度（`bru-business-invariant`）评审时读到这些，就能从"猜不到"变成"按台账核对每条路径"。
 

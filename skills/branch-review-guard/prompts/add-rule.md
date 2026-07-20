@@ -8,12 +8,12 @@
 - `add-rule`（本流程）= **人担保**：**绕过** distill 的 ≥2 次阈值，泛化是否成立由**录入人**负责。典型入口有二：
   1. distill 的输出里，某条"遗留项/误报项"被人判定"应豁免" → 一句话转成 calibration；
   2. 一眼就确信要规则化的强 case，不想等它复发第二次。
-- 因此**关卡一道不能松**（与 distill 完全一致）：草稿 `enabled: false` + 人工 review + 提交到插件仓库 `rules/<pack>/` 后才生效。**本流程绝不直接修改任何 `rules/` 目录**（插件是独立仓库，草稿只落目标项目本地）。
+- 因此**关卡一道不能松**（与 distill 完全一致）：草稿 `enabled: false` + 人工 review 后才落位。**本流程绝不直接写 `branch-review-rules/` 或任何 `rules/` 目录**（草稿只落目标项目本地 `rule-drafts/`）。
 
-## 前提认知（数据流向，与 distill 相同）
+## 前提认知（数据流向，与 distill 相同的两段式）
 
 - 插件是**独立仓库**，不在目标项目内；草稿只落**目标项目本地** `rule-drafts/`、不入库。
-- 规则正式生效 = 人工把草稿提交到插件仓库 `rules/<pack>/` 并置 `enabled: true`。本流程只负责产出草稿。
+- **首落位** = 人工确认后把草稿移入目标项目根 `branch-review-rules/`（`pack: local`、扁平放根，放入即生效、移出即撤销），并记 `branch-review-reports/LEDGER.md`；**晋升插件仓库 `rules/discover-new/`** = 本地服役命中 ≥3 且存活率 ≥2/3 后的第二段（改 pack/id → commit → config 置 enabled → 发版）。详见 `rules/README.md`「规则生命周期与目录规范」。本流程只负责产出草稿。
 
 ## 步骤
 
@@ -22,7 +22,7 @@
    - `dimension`：`correctness|design|security|tests|observability|api|performance`，按描述归类（`--dimension` 优先）。
    - `severity`：finding 给建议默认（`--severity` 优先，缺省按影响估 `P1`/`P2`）；calibration 一律 `-`。
    - `applies_to`：尽量从描述推断语言/框架/路径；推断不出就**留空**（该包启用时一律适用）并注明。
-   - `pack`：`--pack`，默认 `discover-new`（团队沉淀区，与上游预置的 `skg-spring` 解耦）。
+   - `pack`：`--pack`，默认 `local`（首落位是项目本地试用区，草稿确认后直接移入 `branch-review-rules/` 无需改 frontmatter；晋升团队家时才改 `discover-new`，不混进上游预置的 `skg-spring`）。
 2. **对照现有规则去重**：读插件当前 `rules/` 已启用包的规则（各规则 `summary`/识别要点）。
    - 已有规则覆盖同一模式 → **不新建**，改输出"建议修订现有规则 `<id>`：<怎么改>"。
    - 未覆盖 → 进第 3 步建草稿。
@@ -36,7 +36,7 @@
 5. **输出**（最终回复）：
    - 草稿文件路径 + 一句话说明（`type`/`dimension`/`severity`/`pack` 及为何这样归类；若 type 是推断的，提示复核）；
    - 建议修订的现有规则（若走了去重分支）；
-   - 下一步指引：人工确认 → commit 到插件仓库 `rules/<pack>/` → 置 `enabled: true` → 版本发布后全团队生效。
+   - 下一步指引（两段式）：人工确认 → 移入目标项目根 `branch-review-rules/`（置 `enabled: true` 无意义，本地不走开关，放入即生效）+ 记 LEDGER 台账；本地服役命中 ≥3 且存活率 ≥2/3 → 晋升插件仓库 `rules/discover-new/`（改 pack/id → commit → `config.yaml` 置 enabled → 发版后全团队生效）。
 
 ## 质量约束（与 distill 同一纪律，防过拟合）
 

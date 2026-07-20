@@ -2,6 +2,27 @@
 
 本文件记录 Branch Review Guard 的演进。
 
+## [0.7.0] - 2026-07-19
+
+v0.7.0 落地**规则生命周期优化**（`docs/规则生命周期优化调研结论.md` 的 P0+P1 嫁接清单）。起因是两层实测失灵：项目本地 `branch-review-rules/` 的子目录规则整批静默失效（14 条无人察觉）、根目录规则加载失败时报告恰好什么都不说。本版把"规则怎么存、怎么生效、怎么审、怎么晋升"从约定钉成机制。design-panel 同步升 0.5.2（读取契约措辞对齐）。
+
+### Added
+
+- **规则生命周期与目录规范**（`rules/README.md` 新增一节，随安装分发）：两个家职责表（项目根 `branch-review-rules/` 个人家 = 唯一首落位、扁平放根、`pack: local`；插件仓库 `rules/` 团队家 = 预置 + 晋升，`discover-new/` 空是常态）+ 两段式落位（确认先落个人家试用；命中 ≥3 且存活率 ≥2/3 才晋升，四步缺一不生效）+ 目录纪律（规则目录只放规则 `.md`，LEDGER/FEEDBACK 落报告侧）+ 触发节奏（按量不按时：5 份新报告或单次否决 ≥3 条跑 distill）。
+- **战绩闭环（装尺子）**：规则命中的发现标「触发规则: <pack>/<id>」（5 个 review prompt + 6 个维度 agent + 模板）；对抗验证因规则误命中否决的标「规则误报: <pack>/<id>」（`verify-findings.md` + `bru-skeptic`）；calibration 压掉的记「规则降噪: <id>」并在报告第 14 章固定附「被压掉的发现清单」反审计棘轮漂移（`consolidate-report.md` + 模板）。distill 寄生统计命中÷存活回写报告侧 `FEEDBACK.md`，命中机会 <3 标"样本不足"，达标规则单列可晋升候选。
+- **distill 水位线**（按量不按时）：distill 收尾写 `rule-drafts/.distill-state`（时间 + 已消化最新报告名，勿用 mtime——会被手动 `/rule` 草稿污染）；review/diff 收尾按 `consolidate-report.md` 新增第 8 步盘点，新报告 ≥5 份或本次否决 ≥3 条时在报告尾提示跑 distill，默认只提醒不自动跑。
+- **triage 一页清单**（`distill-rules.md` 输出改版）：一行一条 `summary｜类型维度｜证据实例数｜建议裁决｜风险`，建议 adopt 必附误杀模拟 file:line 反例（无反例的 adopt 无效，防橡皮图章）；机械判断 agent 预审代劳，人只答"值不值得进试用区"，落位/归档/记 LEDGER 由 agent 代劳。
+
+### Changed
+
+- **本地规则读取契约钉死**（修静默失效，一切的前置）：`branch-review-rules/` **只读目录根下的 `.md`、不递归子目录**；申报改**无条件**——报告第 1 章必写"项目本地规则 N 条"，N=0 须写明目录状态（不存在/空/读取失败），静默丢失变可见异常。同步 8 处：主 SKILL.md（规则机制节 + 工作流程第 4 步）、orchestrate 第 3 步、consolidate 第 1 章、5 个 review-*.md、design-panel SKILL.md、`report-template.md` 第 1 章。
+- **落位指引全量改两段式**：`commands/distill.md`、`commands/rule.md`、`prompts/distill-rules.md`、`prompts/add-rule.md`、SKILL.md 反馈闭环节、`rules/README.md`、`rules/discover-new/README.md`（加"空是常态"注）、docs 两个 SOP——草稿默认 `pack: local`（原 `discover-new`），下一步指引从"确认后 commit 插件仓库"改为"确认后移入项目本地即生效，服役出战绩再晋升"。
+- **distill 去重对照扩为四处**：插件已启用包 + 项目根 `branch-review-rules/` + `rule-drafts/` 未审草稿（命中则**合并证据进原草稿、不新开文件**——草稿复产堆积的机制根因）+ 已归档草稿。
+
+### 配套（skg_health_global 项目侧，随本版一次性整理，不在插件仓库内）
+
+- 本地 14 条规则自 `discover-new/` 子目录扁平化移根、pack/id 统一 `local`，删空子目录；新建 `branch-review-reports/LEDGER.md` 台账；开发侧 coding-standards skill 机制 H 同步；个人目录写入 `.git/info/exclude`（旧文件被 DLP 加密失效，已重写）并退出误暂存。
+
 ## [0.6.0] - 2026-07-13
 
 v0.6.0 聚焦**提升评审召回与准确**（防漏报），起因是一次真实对照：同一条分支（skg_health_global，250 文件/216 commit），同事的 114-agent 报告查出了本插件漏报的 R1–R12 一批问题。用「单点证伪 + 必败点压测」的对抗式编排（5 召回方案 × 10 怀疑者 × 裁判 + 批评家，~17 agent）定位漏报根因后，落地四块对症改动。**前置结论**：上一版（v0.5.x）的优化方向是精度/信任轴，对召回轴问题基本无效；本次转向召回轴。DDL/配置类缺失（R2/R3/R4）按团队惯例继续由 calibration 规则豁免、本次不动。
