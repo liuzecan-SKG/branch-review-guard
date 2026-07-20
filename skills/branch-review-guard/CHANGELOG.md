@@ -2,6 +2,28 @@
 
 本文件记录 Branch Review Guard 的演进。
 
+## [0.8.0] - 2026-07-20
+
+v0.8.0 里程碑：`discover-new` 团队沉淀区**从空到装载**——首批 19 条实测规则从 skg_health_global 项目本地试用区晋升进插件仓库，走通两段式落位的第二段。这是本套件"评审 → 沉淀 → 机器级/团队级复用"闭环第一次真正跑通。
+
+动因：同一 git 源的多个本地 clone（各处理不同分支）无法共享项目本地 `branch-review-rules/`（gitignored + 工作区级绑定），暴露出"成熟规则困在单个工作区"的问题——晋升进插件（机器级）是正解，比给每个 clone 做符号链接更根本。
+
+### Added
+
+- **`discover-new/` 首批 19 条**（16 finding + 3 calibration）：skg 栈通用机制缺陷（事务副作用 / 令牌 check-then-act 竞态 / 多步写补偿 / schema 演进迁移 / 缓存生命周期 / PII 日志 / 发码频控 / 循环内 N+1 / 外部 HTTP 超时 / 测试假绿等，多为 P1）+ 通用误报校准（触发路径可达性、基线归责、@Valid 空操作）。来源 = 项目本地服役规则经证据实例聚类 + 人工分档晋升；每条清单见 `discover-new/README.md`。
+- **`config.yaml`：`discover-new` 配 `auto_enable.project_markers`**（`skg-health-global` / `skg_health_global`），命中 skg 项目自动启用、非 skg 的 java 项目不受影响（与 `skg-spring` 同模式，防止 skg 业务规则默认污染所有 java+spring 项目）。
+
+### 分档留证（哪些没晋升、为什么）
+
+留在项目本地 `pack: local` 未晋升 6 条：`god-service-overload`（偏主观 + 遗留复读风险）、`calibration-javax-resource-injection`（绑"栈仍用 javax"事实，迁 jakarta 即失效）、`calibration-minimal-ladder-alignment`（绑 coding-standards「最小实现决策梯」方法论）+ 3 条个人工作区特例（pom `-zecan` 隔离 / 个人文件 / 测试与 DDL 不入库）。分档标准：通用机制缺陷与通用评审方法论 → 晋升；主观/绑定当前栈事实/绑团队方法论/个人特例 → 留本地。
+
+### 收尾（发版 + 重启生效后手动执行，不在本仓库范围）
+
+1. 目标项目本地 `branch-review-rules/` 删除已晋升的 19 条（避免与 `discover-new` 重复加载），只留 6 条；LEDGER 记晋升。
+2. 开发侧 `skg-health-global-coding-standards`「机制 H」补读插件 `discover-new/`（此前只读 `baseline/` + `skg-spring/`），否则删了项目本地后开发侧会读不到这 19 条的"修法"。
+
+版本四处同步：`plugin.json` / `manifest.json`（suite + branch-review-guard skill）/ `SKILL.md` / 本 CHANGELOG。
+
 ## [0.7.0] - 2026-07-19
 
 v0.7.0 落地**规则生命周期优化**（`docs/规则生命周期优化调研结论.md` 的 P0+P1 嫁接清单）。起因是两层实测失灵：项目本地 `branch-review-rules/` 的子目录规则整批静默失效（14 条无人察觉）、根目录规则加载失败时报告恰好什么都不说。本版把"规则怎么存、怎么生效、怎么审、怎么晋升"从约定钉成机制。design-panel 同步升 0.5.2（读取契约措辞对齐）。

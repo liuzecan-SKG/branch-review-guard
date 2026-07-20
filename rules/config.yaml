@@ -18,7 +18,12 @@ packs:
         - skg-health-global
         - skg_health_global
   discover-new:
-    enabled: false       # 团队实测沉淀区：distill/rule 反哺产出、人工确认后落这里（与 skg-spring 解耦）；要生效手动开
+    enabled: false       # 默认关；靠下方 auto_enable 命中 skg 项目才自动启用——首批 19 条是 skg 栈沉淀（见 discover-new/README.md），不该默认加给非 skg 的 java 项目
+    auto_enable:
+      # 与 skg-spring 同模式：命中 skg 项目自动启用本次运行，非 skg 项目不受影响
+      project_markers:
+        - skg-health-global
+        - skg_health_global
 
 # 可选：按规则 id 覆盖默认严重度（不改规则文件本身）
 severity_overrides: {}

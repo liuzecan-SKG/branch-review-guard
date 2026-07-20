@@ -1,6 +1,6 @@
 ---
 name: branch-review-guard
-version: 0.7.0
+version: 0.8.0
 description: 提测/上线前对整条功能分支（相对主分支的累计变更）做多维度综合代码评审的编排器。统一调度"正确性/Bug、设计/可维护性、安全、测试、可观测/运维、i18n、业务语义/不变式"等自包含 reviewer，并复用 api-change-guard（API/兼容/影响/回归）与 endpoint-perf-review（性能）作为其中两个维度，强制大 diff 分批全覆盖，按可插拔 rules/ 规则包注入技术栈特有深度，产出单份中文可发布性评审报告。内置 DLP 透明加密环境对策与对抗层反向证伪（捞漏报）。当需要在合并前对一条功能分支做一次性、全面的 code review 时使用。
 ---
 
