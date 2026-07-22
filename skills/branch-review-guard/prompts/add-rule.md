@@ -13,7 +13,7 @@
 ## 前提认知（数据流向，与 distill 相同的两段式）
 
 - 插件是**独立仓库**，不在目标项目内；草稿只落**目标项目本地** `rule-drafts/`、不入库。
-- **首落位** = 人工确认后把草稿移入目标项目根 `branch-review-rules/`（`pack: local`、扁平放根，放入即生效、移出即撤销），并记 `branch-review-reports/LEDGER.md`；**晋升插件仓库 `rules/discover-new/`** = 本地服役命中 ≥3 且存活率 ≥2/3 后的第二段（改 pack/id → commit → config 置 enabled → 发版）。详见 `rules/README.md`「规则生命周期与目录规范」。本流程只负责产出草稿。
+- **首落位** = 人工确认后把草稿移入目标项目根 `branch-review-rules/`（`pack: local`、扁平放根，放入即生效、移出即撤销），并记 `<报告目录>/LEDGER.md`；**晋升插件仓库 `rules/discover-new/`** = 本地服役命中 ≥3 且存活率 ≥2/3 后的第二段（改 pack/id → commit → config 置 enabled → 发版）。详见 `rules/README.md`「规则生命周期与目录规范」。本流程只负责产出草稿。
 
 ## 步骤
 
@@ -26,7 +26,7 @@
 2. **对照现有规则去重**：读插件当前 `rules/` 已启用包的规则（各规则 `summary`/识别要点）。
    - 已有规则覆盖同一模式 → **不新建**，改输出"建议修订现有规则 `<id>`：<怎么改>"。
    - 未覆盖 → 进第 3 步建草稿。
-3. **定位落地目录**：与报告/distill 的双路径逻辑一致——优先 `tools/branch-review-guard/reports/../rule-drafts/`，否则项目根 `branch-review-reports/rule-drafts/`；目录不存在即创建。**与 distill 草稿同一处**，便于统一 review。
+3. **定位落地目录**：草稿写到 `<报告目录>/rule-drafts/`（`<报告目录>` 的定义见主 SKILL.md `## <报告目录>`：优先 `tools/branch-review-guard/reports/`，否则项目根 `branch-review-reports/`）；目录不存在即创建。**与 distill 草稿同一处**，便于统一 review。
 4. **生成草稿**（严格按 `rules/README.md` schema，每条一个文件）：
    - frontmatter：`id: <pack>/<短名>`、`pack`、`type`、`dimension`、`severity`（calibration 用 `"-"`）、`enabled: false`、`applies_to`、`summary`（一句话：查/校准什么）。
    - 正文：
