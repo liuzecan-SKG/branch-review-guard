@@ -4,7 +4,7 @@ pack: discover-new
 type: finding
 dimension: tests
 severity: P1
-enabled: false
+enabled: true
 applies_to:
   languages: [java]
   frameworks: [maven, junit]

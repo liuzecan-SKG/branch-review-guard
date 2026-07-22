@@ -7,6 +7,10 @@
 规则文件 schema、reviewer 如何消费、严重度校准见上级 `rules/README.md`。
 
 > **首批装载（v0.8.0，2026-07-20）**：19 条（16 finding + 3 calibration），来自 skg_health_global 在项目本地 `branch-review-rules/` 服役的实测规则，经证据实例聚类与人工分档后晋升（详见 `skills/branch-review-guard/CHANGELOG.md` 0.8.0 节）。留在项目本地未晋升的：3 条主观/绑定型（`god-service-overload` 偏主观、`calibration-javax-resource-injection` 绑栈现状、`calibration-minimal-ladder-alignment` 绑方法论）+ 3 条个人工作区特例。
+>
+> **补录 4 条（2026-07-21）**：`calibration-repo-ddl-not-baseline`、`calibration-dead-defense-null-branch`、`calibration-dependency-attribution-by-review-mode`、`finding-new-test-missing-tag`。这 4 条此前**只存在于插件缓存、未入库**（缓存在机器级、多 clone 共享，改缓存能立刻生效，于是绕过了入库），实测生效但重装即失、无版本控制。本次回收入库补齐版本控制。**教训**：规则的事实来源是仓库，缓存只是分发副本——用 `scripts/sync-plugin-cache.sh check` 定期查分叉。
+>
+> **开关修复（2026-07-21）**：首批 19 条里有 8 条 `enabled: false`（晋升时只搬了文件、没开开关），实际生效仅 11 条。已全部置 true。**规则进了库不等于进了作用域**，`enabled` 是晋升的第 0 步。
 
 ## finding 规则（要查的问题）
 
@@ -28,6 +32,7 @@
 | `discover-new/declared-vs-actual-drift` | design | P2 | 注释/命名/配置前缀承诺与实现脱节，重则静默失效（升 P1） |
 | `discover-new/enum-ordinal-as-protocol` | design | P2 | 值集不同源：ordinal 当外部协议 / 硬编码值集与枚举脱节，演进即错位 |
 | `discover-new/shotgun-duplicate-logic` | design | P2 | 同构逻辑/工具方法跨类逐字复制，改一处要动多处 |
+| `discover-new/finding-new-test-missing-tag` | tests | P1 | 新增测试类缺 `@Tag` 时 surefire `<groups>` 白名单下任何 profile 都不执行（假绿） |
 
 ## calibration 规则（降噪/绕过）
 
@@ -36,3 +41,6 @@
 | `discover-new/calibration-reachability-and-defense-in-depth` | correctness | 定 P0/P1 前核实触发路径可达性 + 下游/全局防线，降本项目最高频误报 |
 | `discover-new/calibration-baseline-attribution` | correctness | 报缺陷前 git blame 基线归责，存量老债不算本分支；但高危存量须显式转交 |
 | `discover-new/calibration-valid-with-service-validation` | design | Controller 缺 `@Valid` 但 DTO 无约束且 service 已校验时补它是空操作，不计缺陷 |
+| `discover-new/calibration-repo-ddl-not-baseline` | correctness | 仓内 `*.sql` 是旧快照，不得作为"缺索引/缺约束"的静态定级基准，统一降"待人工确认（对照线上表）" |
+| `discover-new/calibration-dead-defense-null-branch` | correctness | 报"判空缺失/null 绕过"前先追来源方法全部 return 路径；恒非 null 则是死防御，不报缺陷 |
+| `discover-new/calibration-dependency-attribution-by-review-mode` | design | pom/依赖类发现先按当前评审口径核归属，master 既有依赖不得报为"本次新增" |

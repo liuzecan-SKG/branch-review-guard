@@ -4,7 +4,7 @@ pack: discover-new
 type: finding
 dimension: design
 severity: P2
-enabled: false
+enabled: true
 applies_to:
   languages: [java]
   frameworks: [spring]
