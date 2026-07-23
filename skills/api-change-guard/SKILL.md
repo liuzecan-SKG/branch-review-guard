@@ -1,7 +1,7 @@
 ---
 name: api-change-guard
 version: 0.2.6
-description: 分析静态类型后端代码变更的影响范围、回归测试范围与 API/契约兼容性风险。支持未提交变更、功能分支相对主分支的累计 diff、最近 N 个提交，或当前作者本人的提交。核心栈无关；默认示例以 Java/Spring 为主，框架/协议特有的深度检查由启用的 rules（dimension: api）规则包补充。当评审涉及控制器/路由、请求/返回 DTO/schema、RPC/IDL、消息契约、校验或序列化注解的 Git diff 时使用。
+description: 分析静态类型后端代码变更的影响范围、回归测试范围与 API/契约兼容性风险。支持未提交变更、功能分支相对主分支的累计 diff、最近 N 个提交，或当前作者本人的提交。核心栈无关；默认示例以 Java/Spring 为主，框架/协议特有的深度检查由启用的 rules 规则包（dimension=api）补充。当评审涉及控制器/路由、请求/返回 DTO/schema、RPC/IDL、消息契约、校验或序列化注解的 Git diff 时使用。
 ---
 
 # API Change Guard
