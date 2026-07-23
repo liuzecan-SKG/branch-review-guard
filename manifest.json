@@ -1,6 +1,6 @@
 {
   "suite": "branch-review-guard",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "description": "提测/上线前整分支综合代码评审编排器，含可插拔规则机制；自包含、可移植、可 CI 化。",
   "schema": 1,
   "defaults": {
@@ -20,7 +20,7 @@
   "skills": [
     {
       "name": "branch-review-guard",
-      "version": "0.8.0",
+      "version": "0.8.1",
       "role": "primary",
       "source": "skills/branch-review-guard",
       "targets": {
@@ -33,7 +33,7 @@
     },
     {
       "name": "api-change-guard",
-      "version": "0.2.6",
+      "version": "0.2.7",
       "role": "dependency",
       "source": "skills/api-change-guard",
       "targets": {
@@ -55,7 +55,7 @@
     },
     {
       "name": "design-panel",
-      "version": "0.5.2",
+      "version": "0.5.3",
       "role": "primary",
       "source": "skills/design-panel",
       "targets": {
