@@ -66,7 +66,7 @@ summary: 一句话：这条规则在查/校准什么
 
 ## 反馈闭环（可选，配合 ROADMAP #4）
 
-被开发反复标"忽略/误报"的规则，建议在其 frontmatter 调低 `severity` 或置 `enabled: false`，或新增一条 `type: calibration` 规则把该类绕过。处置记录与战绩落在**目标项目报告侧** `branch-review-reports/FEEDBACK.md` / `LEDGER.md`——**绝不放进规则目录**（非规则文件混入加载源会被误计成规则，有实证前科）。
+被开发反复标"忽略/误报"的规则，建议在其 frontmatter 调低 `severity` 或置 `enabled: false`，或新增一条 `type: calibration` 规则把该类绕过。处置记录与战绩落在**目标项目报告侧** `<报告目录>/FEEDBACK.md` / `<报告目录>/LEDGER.md`（`<报告目录>` = 优先 `tools/branch-review-guard/reports/`，否则项目根 `branch-review-reports/`）——**绝不放进规则目录**（非规则文件混入加载源会被误计成规则，有实证前科）。
 
 ## 规则生命周期与目录规范（所有项目通用）
 
@@ -78,7 +78,7 @@ summary: 一句话：这条规则在查/校准什么
 | 插件仓库 `rules/`（团队家） | `baseline/`、`skg-spring/` 是作者预置；`discover-new/` **只收**在个人家服役出战绩后**晋升**的规则——**空是常态不是欠账** |
 | 用户/项目 CLAUDE.md、memory | 非规则源。写码预防态红线、构建/架构事实、决策存档；新增**检测类**条目一律只进 rules |
 
-**目录纪律**：`branch-review-rules/` 里只放规则 `.md`——README、台账（LEDGER）、战绩（FEEDBACK）一律落项目的 `branch-review-reports/`，防被误计成规则。
+**目录纪律**：`branch-review-rules/` 里只放规则 `.md`——README、台账（LEDGER）、战绩（FEEDBACK）一律落 `<报告目录>`，防被误计成规则。
 
 **两段式落位**：
 

@@ -10,7 +10,7 @@
 ## 步骤
 
 1. **定位报告目录**（与报告生成的双路径逻辑一致）：优先 `tools/branch-review-guard/reports/`，否则项目根 `branch-review-reports/`。两处都没有报告 → 中止并说明"先跑几次 `/branch-review-guard:review` 积累样本"。
-2. **取样**：按文件名时间戳倒序取最近 N 份**评审报告**（文件名 `branch-review-guard-*`；默认 5；不足 N 有几份用几份，样本 <2 份时告知"样本过少，聚类可信度有限"仍可继续）。**排除**设计阶段的 `design-panel-*` 报告与精炼设计稿 `*_DESIGN.md`——它们不是 distill 输入源（设计裁决不沉淀为规则，design 与 review 共享 rules 供给是单向的：rules → design 消费，design 不产 rules）。
+2. **取样**：按文件名时间戳倒序取最近 N 份**评审报告**（文件名 `branch-review-guard-*`；默认 5；不足 N 有几份用几份，样本 <2 份时告知"样本过少，聚类可信度有限"仍可继续）。**排除**设计阶段的 `design-panel-*` 报告与精炼设计稿 `*_DESIGN.md`——它们不是 distill 输入源（设计裁决不沉淀为规则，design 与 review 共享 rules 供给是单向的：rules → design 消费，design 不产 rules）。**注**：设计产物现已落项目 `docs/`（不再与评审报告同目录），正常取样本就扫不到它们；此处的前缀排除是防御性冗余，防历史遗留文件或用户手工挪动导致污染。
 3. **抽取发现**：从每份报告解析结构化发现（`[P*] <维度> — 问题 — file:line — 影响 — 建议`），以及附录"对抗验证记录"中被杀/降级的发现与反证。
 4. **聚类**：
    - **先定"代码实例"，再计数**：把每条发现归到一个**代码实例** = `同一 file + 同一根因语义/代码实体`（行号会因后续改动漂移，**不死磕 file:line**，按"这是不是同一处代码的同一个问题"判断）。**同一代码实例在多份报告里重复出现，只计 1 次**——它不是"反复出现的模式"，而是同一个问题被反复报（见第 5 步遗留项分诊）。
@@ -24,7 +24,7 @@
    - ② 目标项目根 `branch-review-rules/` 的**现役本地规则**（只读根目录 `.md`）；反复漏判/误判的同样输出修订建议；
    - ③ `rule-drafts/` 里的**未审草稿**：命中 → **把新证据（来源报告 + 实例）合并追加进该草稿文件，不新开文件**——草稿复产堆积的机制根因就在这里；
    - ④ `rule-drafts/` 的**已归档目录**（如 `_archived-*`）：命中 → 说明当时已有裁决，除非有实质新证据，不复产。
-7. **生成草稿**：每个候选一个文件，写到 `<报告目录>/../rule-drafts/`（即 `branch-review-reports/rule-drafts/` 或 `tools/branch-review-guard/reports/rule-drafts/`）：
+7. **生成草稿**：每个候选一个文件，写到 `<报告目录>/rule-drafts/`（`<报告目录>` 定义见主 SKILL.md `## <报告目录>`）：
    - 严格按 `rules/README.md` schema：frontmatter（`id: <pack>/<短名>`、`type`、`dimension`、`severity` 建议值、`applies_to`）+ 正文（识别要点 / 取证方式 / 修法；calibration 用校准动作）。
    - **默认按首落位写 `pack: local`、`id: local/<短名>`**（草稿的宿命是先进项目本地 `branch-review-rules/` 试用，确认后移入即可、无需改 frontmatter；晋升团队家时才改为 `discover-new`）。`--pack` 显式指定时以参数为准，但不要混进上游预置的 `skg-spring`。
    - frontmatter 一律 **`enabled: false`**（草稿默认不生效，防止被误当正式规则加载）。
@@ -34,7 +34,7 @@
    - **草稿 triage 表**（一行一条）：`summary｜finding/calibration + 维度｜证据实例数（哪几份报告）｜建议裁决（adopt 进试用区 / hold 观察 / drop）｜风险一句话`。**建议 adopt 的必须附"误杀模拟"：给出一个若采纳该规则可能被误伤/误豁免的 file:line 级反例并说明为何可接受——无反例的 adopt 建议无效**（防橡皮图章）；
    - **遗留项清单**（若有）：`<一句话> — <file 或代码实体> — 出现于哪几份报告 — 建议出口（排期修 known-issue / 转 calibration 豁免）`；
    - 建议修订的现有规则清单 + 战绩摘要（可晋升候选 / 建议退役）（若有）；
-   - 下一步指引（两段式）：人一行裁决"值不值得进试用区"→ agent 代劳把 adopt 的草稿移入项目根 `branch-review-rules/`（即生效）、归档 drop 的、并记 `branch-review-reports/LEDGER.md` 台账；本地服役命中 ≥3 且存活率 ≥2/3 后，再走晋升四步（改 pack/id 为 `discover-new` → commit 插件仓库 → `config.yaml` 置 enabled → 发版）。
+   - 下一步指引（两段式）：人一行裁决"值不值得进试用区"→ agent 代劳把 adopt 的草稿移入项目根 `branch-review-rules/`（即生效）、归档 drop 的、并记 `<报告目录>/LEDGER.md` 台账；本地服役命中 ≥3 且存活率 ≥2/3 后，再走晋升四步（改 pack/id 为 `discover-new` → commit 插件仓库 → `config.yaml` 置 enabled → 发版）。
 10. **更新水位线**：跑完把 `<报告目录>/rule-drafts/.distill-state` 写为两行：本次运行时间 + 本次已消化的最新报告文件名（**勿用文件 mtime 当代理量**——会被手动 `/rule` 草稿污染）。review/diff 收尾按它盘点是否提示下一次 distill。
 
 ## 质量约束（防过拟合）

@@ -4,7 +4,7 @@ pack: discover-new
 type: finding
 dimension: correctness
 severity: P1
-enabled: false
+enabled: true
 applies_to:
   languages: [java]
   frameworks: [mybatis, mybatis-plus]

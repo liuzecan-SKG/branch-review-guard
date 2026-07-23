@@ -4,7 +4,7 @@ pack: discover-new
 type: calibration
 dimension: correctness
 severity: "-"
-enabled: false
+enabled: true
 applies_to:
   languages: [java]
   frameworks: [spring, dubbo]

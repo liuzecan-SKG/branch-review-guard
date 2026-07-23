@@ -33,13 +33,30 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `manifest.json` 的 `suite.version`
 - 受影响 skill 的 `skills/<name>/SKILL.md` frontmatter `version:`
 - `skills/branch-review-guard/CHANGELOG.md` 加一节（本仓库的变更史与决策记录都在这里，不在 README）
-- **计数同步**（增删 skill / agent / 命令时）：`plugin.json` 的 `description`、`AGENTS.md`（套件内容节 + Claude Code 插件行）、`README.md`（亮点 + 仓库结构）、`marketplace.json` 的 description 里写死的 skill 数 / 子代理数 / 命令数（当前「4 skill + 11 只读子代理 + 5 命令」）要一并更新——0.3.0、0.5.0 都改过这些计数，脱节会让描述与实际不符。
+- **计数同步**（增删 skill / agent / 命令时）：把写死的 skill 数 / 子代理数 / 命令数在以下载体一并更新（当前「4 skill + 11 只读子代理 + 5 命令」）——`plugin.json` 的 `description`（只写了「11 个只读子代理」）、`AGENTS.md`（套件内容节 + Claude Code 插件行）、`README.md`（亮点行 `:19` 把命令名逐个列出，是计数核对的主依据）。0.3.0、0.5.0 都改过这些计数，脱节会让描述与实际不符。**别把 `marketplace.json` 列进计数载体**——它的两处 description 实测不含任何数量字样（全文 15 行），此前文档误把它算进来，照抄会去一个不存在的字段找计数。
+
+### 发版前跑一次规则体检（30 秒，v0.8.0 踩过三个坑）
+
+```bash
+bash scripts/sync-plugin-cache.sh check
+```
+
+它检查三件在 v0.8.0 实际出过问题的事，**都属于"机械可检、靠人眼必漏"**：
+
+1. **`rules/**` 残留 git 冲突标记** —— v0.8.0 的 `config.yaml` 带着 `<<<<<<< HEAD` 进了插件缓存。YAML 语法非法，只因 agent 是"用眼睛读"而非 parser 才侥幸没炸。
+2. **晋升了但没开开关** —— v0.8.0 CHANGELOG 写"首批 19 条晋升"，实际 8 条 `enabled: false`，真正生效只有 11 条。**规则进了库不等于进了作用域**；代价是评审里至少 3 条 P1 基于失效规则产出，怀疑者花整轮时间善后。晋升四步（改 pack/id → commit → `config.yaml` 置 enabled → 发版）里，**每条规则自身的 `enabled: true` 是第 0 步**，最容易漏。
+3. **仓库与插件缓存分叉** —— 缓存装在机器级（多 clone 共享），改缓存能让所有 clone 立刻生效，于是有过"规则只写进缓存没入库"的先例（v0.8.0 发现 4 条只在缓存里）。缓存**无版本控制、重装即失、别人机器上没有**。
+
+配套纪律：
+
+- **规则的事实来源是仓库，不是缓存。** 在缓存里改了规则，用 `sync-plugin-cache.sh pull` 回收入库再 commit；仓库改了规则用 `push` 下发。别只改一边。
+- **DLP 环境下别用 Shell 重定向写规则文件**（`>` / `>>` 写出的文件会被加密成 `%TSD-Header`）。用 Write 工具、`cp`、或 `sed -i` 原地改——这三者实测产出明文。
 
 ### "自主执行"指令多处冗余，改一处要同步同侧其余几处
 
 "被触发后一气呵成、中途不回问用户"的指令分两组冗余：
 
-- **评审侧四处**：`skills/branch-review-guard/SKILL.md`（工作流程节）、`skills/branch-review-guard/prompts/orchestrate-branch-review.md`、`commands/review.md`、`commands/diff.md`。
+- **评审/反馈侧六处**：`skills/branch-review-guard/SKILL.md`（工作流程节）、`skills/branch-review-guard/prompts/orchestrate-branch-review.md`、`commands/review.md`、`commands/diff.md`（评审主流程四处，共享「建立上下文」节点，措辞漂移最易在此处卡住）；另 `commands/distill.md`、`commands/rule.md`（反馈闭环两处）也各带同款「自主一气呵成」指令——它们不与评审主流程的「建立上下文」节点联动，但措辞漂移同样会让 agent 中途回问，改流程措辞时一并检查。
 - **设计侧三处**：`skills/design-panel/SKILL.md`、`skills/design-panel/prompts/orchestrate-design-panel.md`、`commands/design.md`。
 
 0.2.9 修复的 bug 就是几处措辞不一致导致 agent 停在"建立上下文"等用户输入。设计侧的「一次澄清关卡」措辞同样要在这三处保持一致，且**不得承诺"不回复则按默认继续"**（纯 Markdown 无超时续跑通道，提问即结束本轮）。改任何一处的流程措辞，检查同侧其余几处。
@@ -49,7 +66,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - 插件命令文件名 = 命令动词：`commands/review.md` → `/branch-review-guard:review`（`<插件名>:<文件名>` 命名空间）。新增命令沿用 `<verb>.md` 命名。
 - 编排器的**诚实边界**是产品核心卖点：运行时维度（性能/并发/迁移）只允许输出"需运行时验证项"，禁止写出"已验证通过"。改 prompt 时不要削弱这条。
 - `manifest.json` 是安装器的唯一事实来源（skills 清单、落地路径、依赖、规则包）；增删 skill 或改落地路径要先改它。
-- 报告落地路径是插件感知的双路径逻辑：优先 `tools/branch-review-guard/reports/`（安装器形态），否则项目根 `branch-review-reports/`。这段逻辑在多个 SKILL.md/README 中重复出现，改动需全局搜索同步。
+- **产物落地分两处，别混**（2026-07-21 对齐，此前有四种写法且两种指向不同位置）：
+  - **评审侧产物** → `<报告目录>`（唯一定义在主 SKILL.md `## <报告目录>`：优先 `tools/branch-review-guard/reports/`，否则项目根 `branch-review-reports/`）。报告、规则草稿 `rule-drafts/`、水位线 `.distill-state`、台账 `LEDGER.md`、战绩 `FEEDBACK.md` **全部相对它定位**，一次性快照、不入库。新增衍生产物一律写 `<报告目录>/xxx`，**不要再展开双路径**——展开就会漂。
+  - **设计侧产物** → 被设计项目的 `docs/`（与 PRD 同处、**要入库**）。`:design` 的完整报告与精炼设计稿都落这里，因为评审侧「建立上下文」读的就是 `docs/*_DESIGN.md`；旧流程让用户手动搬运，没搬就静默无上下文。
 
 ## 验证方式（无自动化测试）
 
